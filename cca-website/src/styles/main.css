@@ -1,0 +1,1171 @@
+/* Main.css - Codey Craft Africa: Full Enterprise Edition */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap');
+
+:root {
+  --cca-red: #FF4500;
+  --cca-black: #000000;
+  --cca-white: #FFFFFF;
+  --cca-grey: #F8F8F8;
+  --border: #EAEAEA;
+  --noise: url('https://grainy-gradients.vercel.app/noise.svg');
+}
+
+/* --- Global & Texture --- */
+* { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+body {
+  background-color: var(--cca-white);
+  color: var(--cca-black);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  line-height: 1.6;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--noise);
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* --- Navigation --- */
+.nav-container {
+  position: fixed;
+  top: 0; width: 100%; padding: 25px 8%;
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid var(--border);
+  z-index: 1000;
+}
+
+.nav-logo { height: 65px; width: auto; cursor: pointer; }
+
+.nav-links { display: flex; align-items: center; gap: 25px; }
+
+.nav-item { position: relative; padding: 10px 0; }
+
+.nav-item > a {
+  text-decoration: none; color: var(--cca-black);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700; font-size: 0.75rem;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  transition: 0.3s;
+}
+
+.dropdown-menu {
+  position: absolute; top: 100%; left: 0;
+  background: var(--cca-white); min-width: 220px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+  display: none; flex-direction: column;
+  border: 1px solid var(--border); padding: 10px 0;
+}
+
+.nav-item:hover .dropdown-menu { display: flex; }
+
+.dropdown-menu a {
+  padding: 12px 25px; text-decoration: none;
+  color: var(--cca-black); font-size: 0.8rem;
+  font-weight: 500; transition: 0.2s;
+}
+
+.dropdown-menu a:hover { background: var(--cca-grey); color: var(--cca-red); }
+
+/* --- Spacing Fix for Fixed Navbar --- */
+.site-wrapper {
+  padding-top: 140px; 
+}
+/* Add this to your Global Styles */
+.service-hero, 
+.product-page section:first-of-type,
+.bizara-product-page section:first-of-type {
+  padding-top: 120px !important; /* Adjust this value to match your Navbar height + extra breathing room */
+  min-height: 90vh; /* Ensures the hero still feels large and impactful */
+  display: flex;
+  align-items: center;
+}
+
+/* If you have a global wrapper in App.jsx, you can apply it there instead */
+.site-wrapper {
+  padding-top: 85px; 
+}
+.menu-icon {
+  display: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* MOBILE NAV */
+@media (max-width: 900px) {
+  .menu-icon {
+    display: block;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 85px;
+    left: 0;
+    width: 100%;
+    background: white;
+    flex-direction: column;
+    padding: 20px 8%;
+    gap: 20px;
+    display: none;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  .dropdown-menu {
+    position: static;
+    display: flex;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+
+  .nav-item:hover .dropdown-menu {
+    display: flex;
+  }
+}
+/* --- Hero Section with 3D Image on Right --- */
+.hero {
+  height: calc(100vh - 140px);
+  display: flex; align-items: center; padding: 0 8%;
+  position: relative;
+  overflow: hidden;
+  /* Background 3D Image Logic */
+  background-image: url('../assets/Hero\ Poster.png'); 
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: contain;
+}
+
+/* Gradient fade to ensure text contrast on the left */
+.hero::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(90deg, var(--cca-white) 35%, transparent 75%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-content { 
+  max-width: 850px; 
+  position: relative;
+  z-index: 2;
+}
+
+.hero h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  line-height: 1.1; letter-spacing: -2px;
+  text-transform: uppercase;
+}
+
+.typewriter-span { color: var(--cca-red); }
+
+.hero-p {
+  max-width: 650px; margin-top: 35px; 
+  font-size: 1.2rem; font-weight: 300; opacity: 0.7;
+}
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    background-position: center;
+    background-size: 70%;
+    height: auto;
+    padding: 120px 5% 80px;
+  }
+
+  .hero::after {
+    background: linear-gradient(180deg, white 40%, transparent 100%);
+  }
+}
+
+/* --- General Sections --- */
+.section-padding { padding: 140px 8%; }
+
+.title-large {
+  font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3.5rem;
+  margin-bottom: 80px; text-transform: uppercase;
+}
+
+.services-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+}
+
+.service-card {
+  background: var(--cca-white); padding: 80px 50px;
+  transition: 0.4s ease;
+}
+
+.service-card:hover { background: var(--cca-black); color: var(--cca-white); }
+
+.service-card h3 { 
+  font-family: 'Montserrat', sans-serif; font-weight: 700; 
+  font-size: 1.8rem; margin-bottom: 25px; 
+}
+
+/* --- Process Section --- */
+.process-section { background: var(--cca-black); color: var(--cca-white); }
+
+.process-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px; background: #222;
+}
+
+.process-card { background: var(--cca-black); padding: 70px 45px; }
+
+.process-num { 
+  font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 4rem; 
+  color: var(--cca-red); opacity: 0.4; margin-bottom: 15px; 
+}
+
+/* --- Selected Work --- */
+.work-item {
+  display: grid; grid-template-columns: 1fr 1.2fr;
+  gap: 80px; align-items: center; margin-bottom: 120px;
+}
+
+.work-info h3 { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 2.8rem; margin-bottom: 25px; }
+
+.work-img-container {
+  width: 100%; aspect-ratio: 16/10; background: #F3F3F3;
+  border: 1px solid var(--border); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; padding: 30px;
+}
+
+.work-img-container img { 
+  width: 100%; height: 100%; 
+  object-fit: contain; 
+  transition: 0.6s ease-in-out; 
+}
+
+.work-item:hover img { transform: scale(1.02); }
+@media (max-width: 900px) {
+  .work-item {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+/* --- Pricing --- */
+.pricing-section { background: var(--cca-grey); }
+
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+.price-card {
+  background: var(--cca-white); padding: 60px 40px;
+  border: 1px solid var(--border); display: flex; flex-direction: column;
+}
+
+.price-card.featured { border: 2px solid var(--cca-red); position: relative; }
+
+.price-badge {
+  position: absolute; top: -14px; left: 30px; background: var(--cca-red);
+  color: white; font-family: 'Montserrat', sans-serif; font-size: 0.65rem; 
+  padding: 6px 16px; font-weight: 900;
+}
+
+.price-val { font-family: 'Montserrat', sans-serif; font-size: 3rem; font-weight: 900; margin: 30px 0; }
+
+.price-list { list-style: none; margin-bottom: 40px; flex-grow: 1; }
+
+.price-list li { 
+  padding: 14px 0; border-bottom: 1px solid #f2f2f2; 
+  font-size: 0.95rem; 
+}
+
+.price-btn {
+  width: 100%; padding: 22px; border: none; font-family: 'Montserrat', sans-serif;
+  font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.3s;
+}
+
+.btn-black { background: var(--cca-black); color: white; }
+.btn-red { background: var(--cca-red); color: white; }
+@media (max-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Form --- */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 60px; }
+
+.input-underlined {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 2px solid var(--cca-black); padding: 22px 0;
+  font-size: 1.1rem; outline: none; font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.submit-btn {
+  background: var(--cca-red); color: white; padding: 30px;
+  border: none; font-family: 'Montserrat', sans-serif; font-size: 1.1rem;
+  font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 40px;
+}
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid textarea {
+    grid-column: span 1 !important;
+  }
+
+  .submit-btn {
+    grid-column: span 1 !important;
+  }
+}
+
+/* --- Footer --- */
+.footer {
+  background: var(--cca-black); color: var(--cca-white);
+  padding: 100px 8% 40px; border-top: 6px solid var(--cca-red);
+}
+
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 100px; }
+
+.footer-logo-img {
+  height: 90px;
+  width: auto;
+  margin-bottom: 35px;
+}
+
+.social-icons { display: flex; gap: 20px; margin-top: 25px; }
+.social-icons a { color: white; font-size: 1.8rem; transition: 0.3s; }
+.social-icons a:hover { color: var(--cca-red); transform: translateY(-5px); }
+
+.footer-head { 
+  font-family: 'Montserrat', sans-serif; color: var(--cca-red); 
+  font-size: 0.75rem; letter-spacing: 3px; font-weight: 900; margin-bottom: 35px; 
+}
+
+.footer-link {
+  color: #999; text-decoration: none; display: block;
+  margin-bottom: 20px; transition: 0.3s;
+}
+
+.footer-link:hover { color: var(--cca-white); transform: translateX(8px); }
+
+.footer-bottom {
+  margin-top: 80px; padding-top: 40px; border-top: 1px solid #222;
+  display: flex; justify-content: space-between; opacity: 0.4; font-size: 0.8rem;
+}
+@media (max-width: 900px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 50px;
+    text-align: center;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+}
+/* --- About Page Specifics --- */
+.sub-head {
+  color: var(--cca-red);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  letter-spacing: 4px;
+  font-size: 0.75rem;
+  margin-bottom: 20px;
+  display: block;
+  text-transform: uppercase;
+}
+
+.mission-section {
+  background: var(--cca-black);
+  color: var(--cca-white);
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+}
+
+.mission-text h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: var(--cca-red);
+}
+
+.mission-text p {
+  font-size: 1.4rem;
+  font-weight: 300;
+  line-height: 1.8;
+  opacity: 0.8;
+}
+
+.values-bg {
+  background: var(--cca-grey);
+}
+
+.founder-item {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .mission-grid, .founder-item {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+  .mission-text p {
+    font-size: 1.1rem;
+  }
+}
+/* --- Founder Image Styling --- */
+.founder-img-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  justify-self: center;
+}
+
+.founder-portrait {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+  filter: grayscale(20%);
+  transition: 0.5s ease;
+  border: 1px solid var(--border);
+}
+
+.founder-portrait:hover {
+  filter: grayscale(0%);
+}
+
+.founder-accent-box {
+  position: absolute;
+  top: 30px;
+  right: -30px;
+  width: 100%;
+  height: 100%;
+  border: 4px solid var(--cca-red);
+  z-index: 1;
+}
+/* --- Overview Section --- */
+.overview-container {
+  max-width: 900px;
+}
+
+.title-medium {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  margin-bottom: 40px;
+}
+
+.overview-text {
+  font-size: 1.3rem;
+  line-height: 1.8;
+  margin-bottom: 30px;
+  opacity: 0.8;
+  font-weight: 300;
+}
+
+/* --- Different Section (Dark Background) --- */
+.different-section {
+  background: var(--cca-black);
+  color: var(--cca-white);
+}
+
+.different-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  margin-top: 60px;
+}
+
+.different-card {
+  border-top: 1px solid #333;
+  padding-top: 40px;
+}
+
+.diff-icon {
+  color: var(--cca-red);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.different-card h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.different-card p {
+  opacity: 0.6;
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* Responsive Fixes */
+@media (max-width: 1024px) {
+  .different-grid {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+  .title-medium {
+    font-size: 2rem;
+  }
+}
+@media (max-width: 900px) {
+  .founder-img-wrapper {
+    max-width: 100%;
+    margin-top: 50px;
+  }
+  .founder-accent-box {
+    display: none; /* Simplify on mobile */
+  }
+}
+/* =========================
+   ABOUT PAGE MOBILE STYLES
+   (ADD AT BOTTOM OF CSS FILE)
+========================= */
+
+@media (max-width: 768px) {
+
+  /* GENERAL SECTION SPACING */
+  .section-padding {
+    padding: 60px 20px;
+  }
+.about-hero {
+  padding-top: 120px;
+}
+  /* HERO TEXT */
+  .about-hero-content h1 {
+    font-size: 2.2rem;
+    line-height: 1.3;
+  }
+
+  .about-hero-content p {
+    font-size: 1rem;
+  }
+
+  /* TITLES */
+  .title-large {
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+
+  .title-medium {
+    font-size: 1.5rem;
+  }
+
+  /* =========================
+     OVERVIEW SECTION
+  ========================= */
+
+  .overview-container {
+    padding: 0;
+  }
+
+  /* =========================
+     DIFFERENTIATORS GRID
+  ========================= */
+
+  .different-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* =========================
+     CORE VALUES GRID
+  ========================= */
+
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* =========================
+     FOUNDER SECTION
+  ========================= */
+
+  .founder-item {
+    flex-direction: column;
+    gap: 30px;
+    align-items: flex-start;
+  }
+
+  .work-info {
+    width: 100%;
+  }
+
+  .founder-img-wrapper {
+    width: 100%;
+  }
+
+  .founder-portrait {
+    width: 100%;
+    height: auto;
+  }
+
+  /* =========================
+     STATS ROW
+  ========================= */
+
+  .stats-row {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+}
+/* --- Web Page Specific Styles --- */
+/* --- Service Hero - Full Visibility Fix --- */
+.service-hero {
+  min-height: 90vh; /* Increased height */
+  background-size: contain; /* Changed from 'cover' to 'contain' */
+  background-position: right center; /* Pins 3D image to the right */
+  background-repeat: no-repeat;
+  background-color: #0c0c0c; /* Matches typical 3D dark backgrounds */
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* Clears the 85px Navbar + extra breathing room */
+  padding-top: 160px; 
+  padding-bottom: 80px;
+}
+
+.service-hero-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  /* Gradient fade from left to right to protect text readability */
+  background: linear-gradient(90deg, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.4) 50%, transparent 100%);
+  display: flex;
+  align-items: center;
+  padding: 0 8%;
+  z-index: 1;
+}
+
+.service-hero-content {
+  max-width: 800px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Mobile Fix for Service Hero */
+@media (max-width: 1024px) {
+ .service-hero {
+  padding-top: 140px;
+  padding-bottom: 80px;
+  background-size: 70%;
+  background-position: center bottom;
+}
+
+.service-hero-overlay {
+  padding: 0 20px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.85) 40%, transparent 100%);
+}
+
+.service-hero-content h1 {
+  font-size: 2.2rem;
+  line-height: 1.3;
+}
+
+.service-hero-content p {
+  font-size: 1rem;
+}
+}
+
+.service-icon-red {
+  font-size: 2.5rem;
+  color: var(--cca-red);
+  margin-bottom: 25px;
+}
+/* --- Bizara Hero Mobile Fix --- */
+@media (max-width: 768px) {
+  .bizara-product-page .title-large {
+    font-size: 2.2rem !important;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .bizara-product-page .hero-p {
+    font-size: 1rem;
+    padding: 0 10px;
+  }
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  margin-top: 40px;
+}
+
+.quote-card {
+  font-size: 1.5rem;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.6;
+  border-left: 4px solid var(--cca-red);
+  padding-left: 30px;
+}
+
+.quote-card cite {
+  display: block;
+  font-style: normal; font-size: 0.8rem; font-weight: 900;
+  text-transform: uppercase; margin-top: 20px; color: var(--cca-red);
+}
+
+.cta-box {
+  background: var(--cca-grey);
+  padding: 80px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.cta-btns {
+  display: flex; justify-content: center; gap: 20px; margin-top: 40px;
+}
+
+.btn-outline {
+  padding: 22px 40px;
+  background: transparent; border: 2px solid var(--cca-black);
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  cursor: pointer; transition: 0.3s;
+}
+
+.btn-outline:hover { background: var(--cca-black); color: white; }
+
+@media (max-width: 900px) {
+  .testimonial-grid, .cta-btns { grid-template-columns: 1fr; flex-direction: column; }
+}
+/* --- Web Page Specific Enhancements --- */
+
+/* Increase Hero Padding to clear the Navbar */
+
+/* Google Review Styles */
+.google-reviews-section {
+  background: var(--cca-grey);
+}
+
+.google-review-card {
+  background: var(--cca-white);
+  padding: 40px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.review-stars {
+  color: #FBBC04; /* Google Star Gold */
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.review-text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #444;
+  margin-bottom: 30px;
+  flex-grow: 1;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.reviewer-avatar {
+  width: 45px;
+  height: 45px;
+  background: var(--cca-red);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-family: 'Montserrat';
+}
+
+.reviewer-name {
+  font-family: 'Montserrat';
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.reviewer-role {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+/* Unified CTA Buttons */
+.cta-btns {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 50px;
+}
+
+.cta-btn-primary, .cta-btn-secondary {
+  width: 280px; /* Unified width */
+  height: 70px;  /* Unified height */
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.3s;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-btn-primary {
+  background: var(--cca-red);
+  color: white;
+}
+
+.cta-btn-primary:hover {
+  background: var(--cca-black);
+}
+
+.cta-btn-secondary {
+  background: transparent;
+  color: var(--cca-black);
+  border: 2px solid var(--cca-black);
+}
+
+.cta-btn-secondary:hover {
+  background: var(--cca-black);
+  color: white;
+}
+
+@media (max-width: 900px) {
+  .cta-btns {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cta-btn-primary, .cta-btn-secondary {
+    width: 100%;
+    max-width: 350px;
+  }
+}
+/* 1. Define your Navbar height as a variable for easy updates */
+:root {
+  --nav-height: 90px; /* Adjust this to your actual Navbar height */
+}
+
+/* 2. Apply a margin-top to the first section of every page */
+.web-service-page, 
+.saas-service-page, 
+.growth-service-page, 
+.automation-service-page, 
+.product-page, 
+.bizara-product-page {
+  margin-top: var(--nav-height);
+}
+
+/* 3. Ensure the Hero handles the background correctly now that it's moved */
+.service-hero {
+  height: calc(100vh - var(--nav-height)); /* Makes hero fill remaining screen */
+  min-height: 600px;
+  background-position: center;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+/* --- Careers Hero Fix (Navbar Overlap) --- */
+@media (max-width: 768px) {
+  .careers-page .section-padding:first-of-type {
+    padding-top: 140px;
+  }
+
+  .careers-page .title-large {
+    font-size: 2.2rem;
+    line-height: 1.3;
+  }
+}
+/* --- Job Card Mobile Fix --- */
+@media (max-width: 768px) {
+  .job-card-expanded {
+    padding: 30px 20px !important;
+  }
+}
+/* --- Job Header Mobile Layout --- */
+@media (max-width: 768px) {
+  .job-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .job-header button {
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+/* --- Job Title Mobile --- */
+@media (max-width: 768px) {
+  .job-card-expanded h3 {
+    font-size: 1.5rem !important;
+  }
+}
+/* --- Job Details Grid Mobile --- */
+@media (max-width: 768px) {
+  .job-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+}
+/* --- Job Details Grid Mobile --- */
+@media (max-width: 768px) {
+  .job-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+}
+/* --- Skills Tags Mobile --- */
+@media (max-width: 768px) {
+  .job-details-grid span {
+    font-size: 0.7rem;
+    padding: 6px 12px;
+  }
+}
+/* --- Empty State Mobile --- */
+@media (max-width: 768px) {
+  .careers-page .title-medium {
+    font-size: 1.8rem;
+  }
+
+  .careers-page section div[style*="padding: 100px 0"] {
+    padding: 60px 20px !important;
+  }
+}
+/* --- Blog Page Top Spacing Fix --- */
+@media (max-width: 768px) {
+  .blog-page {
+    padding-top: 140px !important;
+  }
+}
+/* --- Blog Grid Mobile --- */
+@media (max-width: 768px) {
+  .blog-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+}
+/* --- Blog Grid Mobile --- */
+@media (max-width: 768px) {
+  .blog-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+}
+/* --- Blog Image Mobile --- */
+@media (max-width: 768px) {
+  .blog-grid > div > div:first-child {
+    height: 180px !important;
+  }
+}
+/* --- Blog Title Mobile --- */
+@media (max-width: 768px) {
+  .blog-grid h3 {
+    font-size: 1.3rem !important;
+  }
+}
+/* --- Blog Text Mobile --- */
+@media (max-width: 768px) {
+  .blog-grid p {
+    font-size: 0.9rem !important;
+    line-height: 1.5;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page {
+    padding-top: 100px !important;
+  }
+
+  .contact-page .title-large {
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page .container > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 40px !important;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page h3 {
+    font-size: 1.5rem;
+  }
+
+  .contact-page .info-item {
+    gap: 15px;
+  }
+
+  .contact-page .info-item p {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page form > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+
+  .contact-page input,
+  .contact-page select,
+  .contact-page textarea {
+    width: 100% !important;
+    font-size: 0.95rem;
+  }
+
+  .contact-page textarea {
+    height: 130px !important;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page form {
+    padding: 0;
+  }
+
+  .contact-page form button {
+    padding: 16px !important;
+    font-size: 0.9rem;
+  }
+
+  .contact-page .container > div > div:last-child {
+    padding: 25px !important;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page form {
+    padding: 0;
+  }
+
+  .contact-page form button {
+    padding: 16px !important;
+    font-size: 0.9rem;
+  }
+
+  .contact-page .container > div > div:last-child {
+    padding: 25px !important;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page a {
+    font-size: 1.3rem !important;
+  }
+}
+@media (max-width: 768px) {
+  .contact-page iframe {
+    height: 300px !important;
+  }
+
+  .contact-page div[style*="height: 450px"] {
+    height: 300px !important;
+  }
+}
+@media (max-width: 768px) {
+  .service-hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.75),
+      rgba(0, 0, 0, 0.85)
+    ) !important;
+  }
+}
+@media (max-width: 768px) {
+  .service-hero {
+    min-height: 70vh !important;
+    background-position: center !important;
+    background-size: cover !important;
+  }
+
+  .service-hero-content {
+    padding: 100px 20px 40px 20px !important;
+    text-align: left;
+  }
+}
+@media (max-width: 768px) {
+  .service-hero {
+    min-height: 70vh !important;
+    background-position: center !important;
+    background-size: cover !important;
+  }
+
+  .service-hero-content {
+    padding: 100px 20px 40px 20px !important;
+    text-align: left;
+  }
+}
+@media (max-width: 768px) {
+  .service-hero-content .title-large {
+    font-size: 2rem !important;
+    line-height: 1.3;
+  }
+
+  .service-hero-content .hero-p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 100% !important;
+  }
+
+  .service-hero-content .sub-head {
+    font-size: 0.7rem;
+    letter-spacing: 2px !important;
+  }
+}
+@media (max-width: 768px) {
+  .service-hero {
+    filter: none;
+  }
+
+  .service-hero-overlay {
+    backdrop-filter: blur(4px);
+  }
+}
+@media (max-width: 768px) {
+  .service-hero-content .title-large {
+    font-size: 2rem !important;
+    line-height: 1.3;
+  }
+
+  .service-hero-content .hero-p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 100% !important;
+  }
+
+  .service-hero-content .sub-head {
+    font-size: 0.7rem;
+    letter-spacing: 2px !important;
+  }
+}
+.bizara-product-page .service-hero-overlay {
+  padding-top: 120px;
+}
