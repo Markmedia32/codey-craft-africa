@@ -1,4 +1,5 @@
-// Version 2.0 - Universal CORS Fix
+// Version 2.1 - Fixed DB Column Names + Stability Improvements
+
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
@@ -12,7 +13,7 @@ const app = express();
 ========================= */
 app.use(cors()); 
 
-// FIXED: Increased limits to handle large Base64 strings (PDFs)
+// Increased limits to handle large Base64 strings (PDFs)
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
@@ -58,6 +59,7 @@ app.post('/send-email', async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error("Email error:", err);
     res.status(500).json({ success: false });
   }
 });
@@ -71,6 +73,7 @@ app.get('/api/jobs', async (req, res) => {
     const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch jobs' });
   }
 });
@@ -85,6 +88,7 @@ app.get('/api/jobs/:id', async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch job' });
   }
 });
@@ -109,6 +113,7 @@ app.post('/api/jobs', async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to save job' });
   }
 });
@@ -118,6 +123,7 @@ app.delete('/api/jobs/:id', async (req, res) => {
     await db.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to delete job' });
   }
 });
@@ -140,7 +146,7 @@ Role: ${applicant.job_title}
       `
     });
   } catch (err) {
-    console.error(err);
+    console.error("Applicant email error:", err);
   }
 };
 
@@ -166,7 +172,7 @@ app.post('/api/applications', async (req, res) => {
   try {
     const result = await db.query(
       `INSERT INTO applications 
-      (name,email,education,experience,cvdata,cvname,coverdata,covername,responses,job_id,job_title)
+      (name,email,education,experience,cv_data,cv_name,cover_data,cover_name,responses,job_id,job_title)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
       RETURNING *`,
       [
@@ -178,7 +184,7 @@ app.post('/api/applications', async (req, res) => {
         cvName,
         coverData,
         coverName,
-        JSON.stringify(responses),
+        JSON.stringify(responses || []),
         jobId,
         jobTitle
       ]
@@ -190,7 +196,7 @@ app.post('/api/applications', async (req, res) => {
 
     res.json({ success: true, application: saved });
   } catch (err) {
-    console.error(err);
+    console.error("APPLICATION SAVE ERROR:", err);
     res.status(500).json({ error: 'Failed to save application' });
   }
 });
@@ -200,6 +206,7 @@ app.get('/api/applications', async (req, res) => {
     const result = await db.query('SELECT * FROM applications ORDER BY submitted_at DESC');
     res.json(result.rows);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch applications' });
   }
 });
