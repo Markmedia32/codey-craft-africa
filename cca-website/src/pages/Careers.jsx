@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { FaUserClock, FaCheckCircle, FaLayerGroup } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-// --- ADDED DYNAMIC URL LOGIC ---
+// --- DYNAMIC API URL LOGIC ---
+// This automatically switches between your local machine and your live Render server
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
-  : 'https://cca-server.onrender.com'; // Replace with your actual Render URL
+  : 'https://cca-server.onrender.com'; 
 // -------------------------------
 
 const Careers = () => {
@@ -14,7 +15,7 @@ const Careers = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // UPDATED TO USE API_BASE_URL
+    // Fetches from Render when live, or Localhost when developing
     fetch(`${API_BASE_URL}/api/jobs`)
       .then(res => res.json())
       .then(data => {
