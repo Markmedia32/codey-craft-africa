@@ -1,4 +1,4 @@
-// Version 2.0 - CORS Fix
+// Version 2.0 - Universal CORS Fix
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
@@ -8,14 +8,10 @@ require('dotenv').config();
 const app = express();
 
 /* =========================
-   CORS CONFIGURATION
+   UNIVERSAL CORS CONFIGURATION
 ========================= */
-// Updated to trust your live domain and local development
-app.use(cors({
-  origin: ['https://www.codeycraft.africa', 'https://codeycraft.africa', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+// This opens the server to all origins to bypass the 403 blocks
+app.use(cors()); 
 
 app.use(express.json());
 
@@ -29,11 +25,10 @@ const db = new Pool({
   }
 });
 
-// Improved Connection Check for Postgres
 db.connect()
   .then(client => {
     console.log('Connected to Codey Craft Cloud DB!');
-    client.release(); // Release the client back to the pool
+    client.release();
   })
   .catch(err => {
     console.error('Cloud DB Connection Error:', err.message);
@@ -72,7 +67,6 @@ app.post('/send-email', async (req, res) => {
    JOBS DATABASE (CLOUD POSTGRES)
 ========================= */
 
-// GET ALL JOBS
 app.get('/api/jobs', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC');
@@ -83,7 +77,6 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-// CREATE JOB
 app.post('/api/jobs', async (req, res) => {
   const { role, type, description, requirements, skills, questions } = req.body;
 
@@ -110,7 +103,6 @@ app.post('/api/jobs', async (req, res) => {
   }
 });
 
-// DELETE JOB
 app.delete('/api/jobs/:id', async (req, res) => {
   const id = req.params.id;
   try {
@@ -122,6 +114,6 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// DYNAMIC PORT FOR RENDER
+// Use the port provided by Render or default to 5000 for local testing
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
