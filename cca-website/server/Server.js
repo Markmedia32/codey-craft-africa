@@ -11,7 +11,10 @@ const app = express();
    UNIVERSAL CORS CONFIGURATION
 ========================= */
 app.use(cors()); 
-app.use(express.json());
+
+// FIXED: Increased limits to handle large Base64 strings (PDFs)
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 /* =========================
    DATABASE CONNECTION (NEON)
