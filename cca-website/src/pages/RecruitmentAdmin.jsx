@@ -16,6 +16,10 @@ const RecruitAdmin = () => {
   const [selectedApp, setSelectedApp] = useState(null);
 
   const [jobs, setJobs] = useState([]);
+
+  // =========================
+  // FIX 1: SAFE DEFAULT STATE
+  // =========================
   const [applications, setApplications] = useState([]);
 
   const [newJob, setNewJob] = useState({
@@ -28,7 +32,7 @@ const RecruitAdmin = () => {
   });
 
   /* =========================
-     FETCH JOBS
+     FETCH JOBS (FIXED SAFETY)
   ========================= */
   useEffect(() => {
     fetchJobs();
@@ -37,37 +41,50 @@ const RecruitAdmin = () => {
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/jobs`);
+
+      // FIX: prevent crash if backend fails
+      if (!res.ok) throw new Error("Jobs fetch failed");
+
       const data = await res.json();
-      setJobs(data);
+      setJobs(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setJobs([]); // FIX: fallback safe state
     }
   };
 
   /* =========================
-     FETCH APPLICATIONS (REAL TIME)
+     FETCH APPLICATIONS (REAL DB ONLY)
   ========================= */
   useEffect(() => {
     const fetchApplications = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/applications`);
+
+        if (!res.ok) throw new Error("Applications fetch failed");
+
         const data = await res.json();
 
-        const formatted = data.map(app => ({
+        // =========================
+        // FIX 2: SAFE PARSING
+        // =========================
+        const formatted = (Array.isArray(data) ? data : []).map(app => ({
           ...app,
           responses: typeof app.responses === 'string'
-            ? JSON.parse(app.responses)
-            : app.responses
+            ? JSON.parse(app.responses || '[]')
+            : (app.responses || [])
         }));
 
         setApplications(formatted);
       } catch (err) {
         console.error(err);
+        setApplications([]); // FIX fallback
       }
     };
 
     fetchApplications();
 
+    // REAL TIME SYNC
     const interval = setInterval(fetchApplications, 8000);
     return () => clearInterval(interval);
   }, []);
@@ -190,10 +207,11 @@ const RecruitAdmin = () => {
 
                   <h3>Assessment Answers</h3>
 
-                  {selectedApp.responses?.map((r, i) => (
+                  {/* FIX 3: SAFE LOOP */}
+                  {(selectedApp.responses || []).map((r, i) => (
                     <div key={i} style={{ marginBottom: 15 }}>
-                      <b>{r.question}</b>
-                      <p>{r.answer}</p>
+                      <b>{r?.question}</b>
+                      <p>{r?.answer}</p>
                     </div>
                   ))}
 

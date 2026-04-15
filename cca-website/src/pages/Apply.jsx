@@ -1,208 +1,289 @@
-// Version 2.0 - Universal CORS Fix
-const express = require('express');
-const nodemailer = require('nodemailer');
-const cors = require('cors');
-const { Pool } = require('pg'); 
-require('dotenv').config();
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaFileUpload, FaArrowLeft, FaCheckCircle, FaFilePdf } from 'react-icons/fa';
 
-const app = express();
+const API_BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:5000'
+  : 'https://cca-server-lu7l.onrender.com';
 
-/* =========================
-   UNIVERSAL CORS CONFIGURATION
-========================= */
-app.use(cors()); 
-app.use(express.json());
+const Apply = () => {
+  const { jobId } = useParams();
+  const navigate = useNavigate();
 
-/* =========================
-   DATABASE CONNECTION (NEON)
-========================= */
-const db = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: { rejectUnauthorized: false }
-});
+  const [job, setJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-db.connect()
-  .then(client => {
-    console.log('Connected to Codey Craft Cloud DB!');
-    client.release();
-  })
-  .catch(err => console.error('Cloud DB Connection Error:', err.message));
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    education: '',
+    experience: '',
+    cvData: '',
+    cvName: '',
+    coverData: '',
+    coverName: '',
+    responses: []
+  });
 
-/* =========================
-   EMAIL SETUP
-========================= */
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        setLoading(true);
 
-/* =========================
-   EMAIL ENDPOINT
-========================= */
-app.post('/send-email', async (req, res) => {
-  const { name, email, message } = req.body;
+        const res = await fetch(`${API_BASE_URL}/api/jobs`);
+        const data = await res.json();
 
-  try {
-    await transporter.sendMail({
-      from: email,
-      to: 'CodeyCraftAfrica@gmail.com',
-      subject: `Project Inquiry from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-    });
+        const found = data.find(j => String(j.id) === String(jobId));
 
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false });
-  }
-});
+        if (!found) {
+          setJob(null);
+          setLoading(false);
+          return;
+        }
 
-/* =========================
-   JOBS
-========================= */
+        const formattedJob = {
+          ...found,
+          requirements: typeof found.requirements === 'string'
+            ? JSON.parse(found.requirements)
+            : found.requirements,
 
-app.get('/api/jobs', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch jobs' });
-  }
-});
+          skills: typeof found.skills === 'string'
+            ? JSON.parse(found.skills)
+            : found.skills,
 
-app.get('/api/jobs/:id', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM jobs WHERE id=$1', [req.params.id]);
+          questions: typeof found.questions === 'string'
+            ? JSON.parse(found.questions)
+            : found.questions
+        };
 
-    if (!result.rows.length) {
-      return res.status(404).json({ error: 'Job not found' });
-    }
+        setJob(formattedJob);
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch job' });
-  }
-});
+        setFormData(prev => ({
+          ...prev,
+          responses: Array.isArray(formattedJob.questions)
+            ? formattedJob.questions.map(q => ({ question: q, answer: '' }))
+            : []
+        }));
 
-app.post('/api/jobs', async (req, res) => {
-  const { role, type, description, requirements, skills, questions } = req.body;
+        setLoading(false);
+      } catch (err) {
+        console.error("Error loading job:", err);
+        setLoading(false);
+      }
+    };
 
-  try {
-    const result = await db.query(
-      `INSERT INTO jobs (role, type, description, requirements, skills, questions)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING *`,
-      [
-        role,
-        type,
-        description,
-        JSON.stringify(requirements),
-        JSON.stringify(skills),
-        JSON.stringify(questions)
-      ]
+    fetchJob();
+  }, [jobId]);
+
+  const handleFileChange = (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (type === 'cv') {
+        setFormData(prev => ({
+          ...prev,
+          cvData: reader.result,
+          cvName: file.name
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          coverData: reader.result,
+          coverName: file.name
+        }));
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleAssessmentChange = (index, val) => {
+    const newResponses = [...formData.responses];
+    newResponses[index].answer = val;
+    setFormData(prev => ({ ...prev, responses: newResponses }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const existingApps = JSON.parse(localStorage.getItem('cca_apps')) || [];
+
+    const newApp = {
+      ...formData,
+      id: Date.now(),
+      jobId,
+      jobTitle: job?.role || '',
+      submittedAt: new Date().toLocaleString()
+    };
+
+    localStorage.setItem('cca_apps', JSON.stringify([...existingApps, newApp]));
+
+    setIsSubmitted(true);
+    window.scrollTo(0, 0);
+  };
+
+  /* ---------------- LOADING STATE FIX ---------------- */
+  if (loading) {
+    return (
+      <div style={{ paddingTop: '200px', textAlign: 'center' }}>
+        <h2>Loading Role Details...</h2>
+      </div>
     );
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to save job' });
   }
-});
 
-app.delete('/api/jobs/:id', async (req, res) => {
-  try {
-    await db.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete job' });
+  /* ---------------- JOB NOT FOUND FIX ---------------- */
+  if (!job) {
+    return (
+      <div style={{ paddingTop: '200px', textAlign: 'center' }}>
+        <h2>Job not found</h2>
+        <button
+          onClick={() => navigate('/careers')}
+          className="cta-btn-primary"
+          style={{ marginTop: '20px' }}
+        >
+          BACK TO CAREERS
+        </button>
+      </div>
+    );
   }
-});
 
-/* =========================
-   APPLICATION ALERT EMAIL
-========================= */
-const sendApplicantAlert = async (applicant) => {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: 'CodeyCraftAfrica@gmail.com',
-      subject: `🚨 New Application: ${applicant.job_title}`,
-      text: `
-New Application Received:
+  /* ---------------- SUCCESS SCREEN ---------------- */
+  if (isSubmitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{ paddingTop: '200px', textAlign: 'center', minHeight: '80vh' }}
+      >
+        <FaCheckCircle size={80} color="var(--cca-red)" />
+        <h1 className="title-medium" style={{ marginTop: '20px' }}>
+          Application Submitted
+        </h1>
+        <p>Thank you for applying to Codey Craft Africa.</p>
 
-Name: ${applicant.name}
-Email: ${applicant.email}
-Role: ${applicant.job_title}
-      `
-    });
-  } catch (err) {
-    console.error(err);
+        <button
+          onClick={() => navigate('/careers')}
+          className="cta-btn-primary"
+          style={{ marginTop: '30px' }}
+        >
+          RETURN TO CAREERS
+        </button>
+      </motion.div>
+    );
   }
+
+  return (
+    <div className="apply-page" style={{ paddingTop: '120px', paddingBottom: '100px', background: '#fff' }}>
+      <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px' }}>
+
+        <button
+          onClick={() => navigate('/careers')}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '30px',
+            fontWeight: '900'
+          }}
+        >
+          <FaArrowLeft /> BACK TO CAREERS
+        </button>
+
+        <span className="sub-head" style={{ color: 'var(--cca-red)' }}>
+          OFFICIAL APPLICATION
+        </span>
+
+        <h1 className="title-large" style={{ marginBottom: '10px' }}>
+          {job.role}
+        </h1>
+
+        <p style={{ opacity: 0.6, marginBottom: '50px' }}>
+          {job.type} • Complete the form and assessment below.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+
+          {/* BASIC INFO */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
+            <input required placeholder="Full Name" style={inputStyle}
+              onChange={e => setFormData({ ...formData, name: e.target.value })} />
+
+            <input required placeholder="Email" type="email" style={inputStyle}
+              onChange={e => setFormData({ ...formData, email: e.target.value })} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px' }}>
+            <input required placeholder="Education" style={inputStyle}
+              onChange={e => setFormData({ ...formData, education: e.target.value })} />
+
+            <input required type="number" placeholder="Experience (Years)" style={inputStyle}
+              onChange={e => setFormData({ ...formData, experience: e.target.value })} />
+          </div>
+
+          {/* FILES */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '50px' }}>
+
+            <div style={fileBoxStyle}>
+              <FaFileUpload size={30} color="#ccc" />
+              <p>Upload CV *</p>
+              <input required type="file" onChange={e => handleFileChange(e, 'cv')} />
+              {formData.cvName && <p><FaFilePdf /> {formData.cvName}</p>}
+            </div>
+
+            <div style={fileBoxStyle}>
+              <FaFileUpload size={30} color="#ccc" />
+              <p>Upload Cover Letter *</p>
+              <input required type="file" onChange={e => handleFileChange(e, 'cover')} />
+              {formData.coverName && <p><FaFilePdf /> {formData.coverName}</p>}
+            </div>
+
+          </div>
+
+          {/* QUESTIONS */}
+          <h3 className="title-medium">Technical Assessment</h3>
+
+          {Array.isArray(job.questions) &&
+            job.questions.map((q, i) => (
+              <div key={i} style={{ marginBottom: '30px' }}>
+                <label style={{ fontWeight: 'bold' }}>{q}</label>
+                <textarea
+                  required
+                  style={{ ...inputStyle, height: '120px' }}
+                  onChange={e => handleAssessmentChange(i, e.target.value)}
+                />
+              </div>
+            ))
+          }
+
+          <button type="submit" className="cta-btn-primary" style={{ width: '100%', padding: '20px' }}>
+            SUBMIT APPLICATION
+          </button>
+
+        </form>
+      </div>
+    </div>
+  );
 };
 
-/* =========================
-   APPLICATIONS (POSTGRES)
-========================= */
+const inputStyle = {
+  width: '100%',
+  padding: '15px',
+  border: '1px solid #ddd',
+  fontSize: '1rem'
+};
 
-app.post('/api/applications', async (req, res) => {
-  const {
-    name,
-    email,
-    education,
-    experience,
-    cvData,
-    cvName,
-    coverData,
-    coverName,
-    responses,
-    jobId,
-    jobTitle
-  } = req.body;
+const fileBoxStyle = {
+  border: '2px dashed #eee',
+  padding: '30px',
+  textAlign: 'center',
+  background: '#fcfcfc'
+};
 
-  try {
-    const result = await db.query(
-      `INSERT INTO applications 
-      (name,email,education,experience,cvdata,cvname,coverdata,covername,responses,job_id,job_title)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-      RETURNING *`,
-      [
-        name,
-        email,
-        education,
-        experience,
-        cvData,
-        cvName,
-        coverData,
-        coverName,
-        JSON.stringify(responses),
-        jobId,
-        jobTitle
-      ]
-    );
-
-    const saved = result.rows[0];
-
-    await sendApplicantAlert(saved);
-
-    res.json({ success: true, application: saved });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save application' });
-  }
-});
-
-app.get('/api/applications', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM applications ORDER BY submitted_at DESC');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch applications' });
-  }
-});
-
-/* =========================
-   SERVER
-========================= */
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+export default Apply;
