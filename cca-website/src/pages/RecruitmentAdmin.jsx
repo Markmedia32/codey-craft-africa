@@ -5,6 +5,12 @@ import {
   FaCheckCircle, FaLayerGroup, FaFilePdf, FaQuestionCircle, FaClock, FaEye 
 } from 'react-icons/fa';
 
+// --- ADDED DYNAMIC URL LOGIC ---
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://cca-server.onrender.com'; // Replace with your actual Render URL
+// -------------------------------
+
 const RecruitAdmin = () => {
   const [activeTab, setActiveTab] = useState('manage');
   const [showModal, setShowModal] = useState(false);
@@ -20,7 +26,8 @@ const RecruitAdmin = () => {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/jobs');
+      // UPDATED TO USE API_BASE_URL
+      const response = await fetch(`${API_BASE_URL}/api/jobs`);
       const data = await response.json();
       setJobs(data);
     } catch (err) {
@@ -45,7 +52,8 @@ const RecruitAdmin = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/jobs', {
+      // UPDATED TO USE API_BASE_URL
+      const response = await fetch(`${API_BASE_URL}/api/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobObj)
@@ -64,7 +72,8 @@ const RecruitAdmin = () => {
   const deleteJob = async (id) => {
     if(!window.confirm("Delete this job role from the public site?")) return;
     try {
-      await fetch(`http://localhost:5000/api/jobs/${id}`, { method: 'DELETE' });
+      // UPDATED TO USE API_BASE_URL
+      await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
       fetchJobs();
     } catch (err) {
       console.error("Delete failed");
@@ -160,7 +169,6 @@ const RecruitAdmin = () => {
                     </div>
                     <button onClick={() => { if(window.confirm("Delete application?")) setApplications(applications.filter(a => a.id !== selectedApp.id)); setSelectedApp(null); }} style={{ color: '#ccc', border: 'none', background: 'none', cursor: 'pointer' }}><FaTrash /> DELETE</button>
                   </div>
-                  {/* Details section kept exactly as original */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px', background: '#fafafa', padding: '25px' }}>
                     <div>
                       <p style={{marginBottom:'8px'}}><strong>Email:</strong> {selectedApp.email}</p>

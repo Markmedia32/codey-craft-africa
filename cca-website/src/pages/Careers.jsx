@@ -3,15 +3,21 @@ import { motion } from 'framer-motion';
 import { FaUserClock, FaCheckCircle, FaLayerGroup } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
+// --- ADDED DYNAMIC URL LOGIC ---
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://cca-server.onrender.com'; // Replace with your actual Render URL
+// -------------------------------
+
 const Careers = () => {
   const [openPositions, setOpenPositions] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/jobs')
+    // UPDATED TO USE API_BASE_URL
+    fetch(`${API_BASE_URL}/api/jobs`)
       .then(res => res.json())
       .then(data => {
-        // Ensure data fields are properly parsed if they come as JSON strings
         const formattedData = data.map(job => ({
           ...job,
           requirements: typeof job.requirements === 'string' ? JSON.parse(job.requirements) : job.requirements,
