@@ -5,38 +5,38 @@ import {
   FaCheckCircle, FaLayerGroup, FaFilePdf, FaQuestionCircle, FaClock, FaEye 
 } from 'react-icons/fa';
 
-// --- ADDED DYNAMIC URL LOGIC ---
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
-  : 'https://cca-server-lu7l.onrender.com'; // ✅ FIXED URL
-// -------------------------------
+  : 'https://cca-server-lu7l.onrender.com';
 
 const RecruitAdmin = () => {
   const [activeTab, setActiveTab] = useState('manage');
   const [showModal, setShowModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
 
-  // Load jobs from Cloud Database
   const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState(() => JSON.parse(localStorage.getItem('cca_apps')) || []);
+  const [applications, setApplications] = useState([]); // Now starts as empty array
 
   useEffect(() => {
     fetchJobs();
+    fetchApplications(); // Fetch applications on load
   }, []);
 
   const fetchJobs = async () => {
     try {
-      // UPDATED TO USE API_BASE_URL
       const response = await fetch(`${API_BASE_URL}/api/jobs`);
       const data = await response.json();
       setJobs(data);
-    } catch (err) {
-      console.error("Error loading jobs:", err);
-    }
+    } catch (err) { console.error("Error loading jobs:", err); }
   };
 
-  // Persist only applications to localStorage
-  useEffect(() => { localStorage.setItem('cca_apps', JSON.stringify(applications)); }, [applications]);
+  const fetchApplications = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/applications`);
+      const data = await response.json();
+      setApplications(data);
+    } catch (err) { console.error("Error loading applications:", err); }
+  };
 
   const [newJob, setNewJob] = useState({ role: '', type: 'Full-time', desc: '', requirements: '', skills: '', questions: '' });
 
@@ -52,35 +52,27 @@ const RecruitAdmin = () => {
     };
 
     try {
-      // UPDATED TO USE API_BASE_URL
       const response = await fetch(`${API_BASE_URL}/api/jobs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobObj)
       });
-
       if (response.ok) {
         setShowModal(false);
         setNewJob({ role: '', type: 'Full-time', desc: '', requirements: '', skills: '', questions: '' });
-        fetchJobs(); // Refresh list from DB
+        fetchJobs();
       }
-    } catch (err) {
-      alert("Failed to publish to cloud.");
-    }
+    } catch (err) { alert("Failed to publish to cloud."); }
   };
 
   const deleteJob = async (id) => {
     if(!window.confirm("Delete this job role from the public site?")) return;
     try {
-      // UPDATED TO USE API_BASE_URL
       await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
       fetchJobs();
-    } catch (err) {
-      console.error("Delete failed");
-    }
+    } catch (err) { console.error("Delete failed"); }
   };
 
-  // SECURE FILE VIEWER (Unchanged)
   const openFile = (dataUrl, fileName) => {
     if (!dataUrl) return alert("No file data found.");
     try {
@@ -95,9 +87,7 @@ const RecruitAdmin = () => {
       const link = document.createElement('a');
       link.href = url;
       link.target = '_blank';
-      if (mimeString.includes('word') || mimeString.includes('officedocument')) {
-        link.download = fileName || "Document";
-      }
+      if (mimeString.includes('word') || mimeString.includes('officedocument')) link.download = fileName || "Document";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -115,12 +105,8 @@ const RecruitAdmin = () => {
             <h1 className="title-medium" style={{ margin: 0 }}>Recruitment Management</h1>
           </div>
           <div style={{ display: 'flex', gap: '15px' }}>
-            <button className={activeTab === 'manage' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('manage')} style={{ width: '180px' }}>
-              <FaBriefcase /> ROLES
-            </button>
-            <button className={activeTab === 'review' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('review')} style={{ width: '220px' }}>
-              <FaUsers /> APPLICANTS ({applications.length})
-            </button>
+            <button className={activeTab === 'manage' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('manage')} style={{ width: '180px' }}><FaBriefcase /> ROLES</button>
+            <button className={activeTab === 'review' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('review')} style={{ width: '220px' }}><FaUsers /> APPLICANTS ({applications.length})</button>
           </div>
         </header>
 
@@ -130,31 +116,24 @@ const RecruitAdmin = () => {
                 <p style={{ opacity: 0.6 }}>Manage job openings hosted on Codey Craft Cloud Database.</p>
                 <button className="cta-btn-primary" onClick={() => setShowModal(true)}>+ CREATE NEW ROLE</button>
             </div>
-            
             <div className="admin-job-grid">
               {jobs.map(job => (
                 <div key={job.id} style={{ background: 'white', border: '1px solid #eee', padding: '25px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h3 style={{ margin: 0 }}>{job.role}</h3>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--cca-red)', fontWeight: 'bold' }}>{job.type} • Cloud Sync Active</span>
-                  </div>
-                  <button onClick={() => deleteJob(job.id)} style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer' }}>
-                    <FaTrash /> REMOVE
-                  </button>
+                  <div><h3 style={{ margin: 0 }}>{job.role}</h3><span style={{ fontSize: '0.8rem', color: 'var(--cca-red)', fontWeight: 'bold' }}>{job.type} • Cloud Sync Active</span></div>
+                  <button onClick={() => deleteJob(job.id)} style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer' }}><FaTrash /> REMOVE</button>
                 </div>
               ))}
             </div>
           </motion.div>
         )}
 
-        {/* Tab 2 Review (Logic remains same as original) */}
         {activeTab === 'review' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '30px' }}>
             <div style={{ maxHeight: '75vh', overflowY: 'auto', background: '#fff', border: '1px solid #eee' }}>
               {applications.length === 0 ? <p style={{padding:'20px', opacity:0.5}}>No applications found.</p> : applications.map(app => (
                 <div key={app.id} onClick={() => setSelectedApp(app)} style={{ padding: '20px', borderBottom: '1px solid #eee', cursor: 'pointer', background: selectedApp?.id === app.id ? '#fef2f2' : 'transparent', borderLeft: selectedApp?.id === app.id ? '5px solid var(--cca-red)' : 'none' }}>
                   <h4 style={{ margin: 0 }}>{app.name}</h4>
-                  <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>{app.jobTitle}</p>
+                  <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>{app.job_title || app.jobTitle}</p>
                 </div>
               ))}
             </div>
@@ -165,7 +144,7 @@ const RecruitAdmin = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                     <div>
                       <h2 style={{ fontSize: '2.2rem' }}>{selectedApp.name}</h2>
-                      <p style={{ color: 'var(--cca-red)', fontWeight: 'bold', fontSize: '1.1rem' }}>{selectedApp.jobTitle}</p>
+                      <p style={{ color: 'var(--cca-red)', fontWeight: 'bold', fontSize: '1.1rem' }}>{selectedApp.job_title || selectedApp.jobTitle}</p>
                     </div>
                     <button onClick={() => { if(window.confirm("Delete application?")) setApplications(applications.filter(a => a.id !== selectedApp.id)); setSelectedApp(null); }} style={{ color: '#ccc', border: 'none', background: 'none', cursor: 'pointer' }}><FaTrash /> DELETE</button>
                   </div>
@@ -176,10 +155,24 @@ const RecruitAdmin = () => {
                       <p style={{marginBottom:'8px'}}><strong>Education:</strong> {selectedApp.education}</p>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cvData, selectedApp.cvName)} style={{justifyContent:'center'}}><FaFilePdf color="red"/> VIEW CV</button>
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.coverData, selectedApp.coverName)} style={{justifyContent:'center'}}><FaEye /> VIEW COVER</button>
+                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cvdata || selectedApp.cvData, selectedApp.cvname || selectedApp.cvName)} style={{justifyContent:'center'}}><FaFilePdf color="red"/> VIEW CV</button>
+                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.coverdata || selectedApp.coverData, selectedApp.covername || selectedApp.coverName)} style={{justifyContent:'center'}}><FaEye /> VIEW COVER</button>
                     </div>
                   </div>
+
+                  {/* ADDED: ASSESSMENT RESPONSES SECTION */}
+                  <div style={{ marginTop: '30px' }}>
+                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>Technical Assessment Responses</h3>
+                    {selectedApp.responses ? (
+                      JSON.parse(typeof selectedApp.responses === 'string' ? selectedApp.responses : JSON.stringify(selectedApp.responses)).map((res, index) => (
+                        <div key={index} style={{ marginBottom: '20px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #eee' }}>
+                          <p style={{ fontWeight: 'bold', color: '#333', marginBottom: '10px' }}>Q: {res.question}</p>
+                          <p style={{ whiteSpace: 'pre-wrap', color: '#555' }}>A: {res.answer}</p>
+                        </div>
+                      ))
+                    ) : <p style={{opacity:0.5}}>No assessment responses provided.</p>}
+                  </div>
+
                 </div>
               ) : <div style={{ textAlign: 'center', paddingTop: '150px', opacity: 0.3 }}>Select an applicant to review.</div>}
             </div>
