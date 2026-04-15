@@ -1,3 +1,4 @@
+// Version 2.0 - CORS Fix
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
