@@ -8,7 +8,7 @@ import {
 // --- ADDED DYNAMIC URL LOGIC ---
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
-  : 'https://cca-server.onrender.com'; // Replace with your actual Render URL
+  : 'https://cca-server-lu7l.onrender.com'; // ✅ FIXED URL
 // -------------------------------
 
 const RecruitAdmin = () => {

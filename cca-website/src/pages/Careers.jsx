@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 // This automatically switches between your local machine and your live Render server
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
-  : 'https://cca-server.onrender.com'; 
+  : 'https://cca-server-lu7l.onrender.com'; 
 // -------------------------------
 
 const Careers = () => {
