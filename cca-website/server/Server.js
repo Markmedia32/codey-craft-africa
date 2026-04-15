@@ -5,7 +5,17 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+/* =========================
+   CORS CONFIGURATION
+========================= */
+// Updated to trust your live domain and local development
+app.use(cors({
+  origin: ['https://www.codeycraft.africa', 'https://codeycraft.africa', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 /* =========================
@@ -111,5 +121,6 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-const PORT = 5000;
+// DYNAMIC PORT FOR RENDER
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
