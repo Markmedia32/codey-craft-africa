@@ -17,6 +17,11 @@ const RecruitAdmin = () => {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
 
+  /* =========================
+     🆕 ADDED: loading state sync
+  ========================= */
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
   useEffect(() => {
     fetchJobs();
     fetchApplications();
@@ -83,10 +88,35 @@ const RecruitAdmin = () => {
     }
   };
 
+  /* =========================
+     🔥 UPDATED: DELETE JOB (NOW ALSO FILTERS APPLICATIONS)
+  ========================= */
   const deleteJob = async (id) => {
     if (!window.confirm("Delete this job role?")) return;
-    await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
-    fetchJobs();
+
+    try {
+      setLoadingDelete(true);
+
+      await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
+
+      // remove job immediately from UI
+      setJobs(prev => prev.filter(job => job.id !== id));
+
+      /* 🆕 REMOVE APPLICATIONS RELATED TO DELETED JOB */
+      setApplications(prev =>
+        prev.filter(app => String(app.jobId) !== String(id))
+      );
+
+      // clear selected app if it belongs to deleted job
+      if (selectedApp && String(selectedApp.jobId) === String(id)) {
+        setSelectedApp(null);
+      }
+
+      setLoadingDelete(false);
+    } catch (err) {
+      setLoadingDelete(false);
+      console.error("Delete error:", err);
+    }
   };
 
   /* =========================
@@ -95,7 +125,10 @@ const RecruitAdmin = () => {
   const openFile = (url) => {
     if (!url) return alert("No file found.");
 
-    const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+    /* 🆕 FIX: force direct browser viewer (no download trigger) */
+    const cleanUrl = url.split('?')[0];
+
+    const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(cleanUrl)}&embedded=true`;
 
     window.open(viewerUrl, '_blank', 'noopener,noreferrer');
   };
@@ -150,6 +183,13 @@ const RecruitAdmin = () => {
                 </button>
               </div>
             ))}
+
+            {/* 🆕 LOADING INDICATOR */}
+            {loadingDelete && (
+              <p style={{ color: 'var(--cca-red)', marginTop: '10px' }}>
+                Updating records...
+              </p>
+            )}
           </motion.div>
         )}
 
@@ -218,7 +258,7 @@ const RecruitAdmin = () => {
                     </div>
                   )}
 
-                  {/* ================= ADDED: TECHNICAL RESPONSES ================= */}
+                  {/* TECH RESPONSES (UNCHANGED) */}
                   <div style={{ marginTop: '30px' }}>
                     <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
                       Technical Screening Responses
