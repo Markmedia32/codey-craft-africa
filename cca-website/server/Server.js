@@ -1,10 +1,11 @@
-// Version 3.0 - Cloudinary File Storage (FINAL FIX)
+// Version 3.1 - Multer + Cloudinary Fix (FINAL FIX)
 
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const { Pool } = require('pg');
 const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,11 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+/* =========================
+   MULTER CONFIG
+========================= */
+const upload = multer({ storage: multer.memoryStorage() });
 
 /* =========================
    CLOUDINARY CONFIG
@@ -90,7 +96,7 @@ app.delete('/api/jobs/:id', async (req, res) => {
 });
 
 /* =========================
-   APPLICATION EMAIL ALERT
+   EMAIL ALERT
 ========================= */
 const sendApplicantAlert = async (applicant) => {
   await transporter.sendMail({
@@ -109,66 +115,83 @@ Cover Letter: ${applicant.cover_url}
 };
 
 /* =========================
-   APPLICATIONS (FIXED)
+   APPLICATIONS (FIXED WITH MULTER)
 ========================= */
-app.post('/api/applications', async (req, res) => {
-  const {
-    name,
-    email,
-    education,
-    experience,
-    cvData,
-    cvName,
-    coverData,
-    coverName,
-    responses,
-    jobId
-  } = req.body;
+app.post(
+  '/api/applications',
+  upload.fields([
+    { name: 'cv', maxCount: 1 },
+    { name: 'cover', maxCount: 1 }
+  ]),
+  async (req, res) => {
 
-  try {
-    // 🔥 Upload CV
-    const cvUpload = await cloudinary.uploader.upload(cvData, {
-      folder: 'cca/cv',
-      resource_type: 'raw'
-    });
-
-    // 🔥 Upload Cover Letter
-    const coverUpload = await cloudinary.uploader.upload(coverData, {
-      folder: 'cca/cover',
-      resource_type: 'raw'
-    });
-
-    // ✅ Save ONLY URLs (NOT base64)
-    const result = await db.query(
-      `INSERT INTO applications
-      (name,email,education,experience,cv_url,cv_name,cover_url,cover_name,responses,job_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-      RETURNING *`,
-      [
+    try {
+      const {
         name,
         email,
         education,
         experience,
-        cvUpload.secure_url,
-        cvName,
-        coverUpload.secure_url,
-        coverName,
-        JSON.stringify(responses || []),
+        responses,
         jobId
-      ]
-    );
+      } = req.body;
 
-    const saved = result.rows[0];
+      const cvFile = req.files?.cv?.[0];
+      const coverFile = req.files?.cover?.[0];
 
-    await sendApplicantAlert(saved);
+      if (!cvFile || !coverFile) {
+        return res.status(400).json({ error: "Missing files" });
+      }
 
-    res.json({ success: true });
+      // Upload CV to Cloudinary
+      const cvUpload = await cloudinary.uploader.upload(
+        `data:application/pdf;base64,${cvFile.buffer.toString('base64')}`,
+        {
+          folder: 'cca/cv',
+          resource_type: 'raw'
+        }
+      );
 
-  } catch (err) {
-    console.error("APPLICATION ERROR:", err);
-    res.status(500).json({ error: 'Upload failed' });
+      // Upload Cover Letter to Cloudinary
+      const coverUpload = await cloudinary.uploader.upload(
+        `data:application/pdf;base64,${coverFile.buffer.toString('base64')}`,
+        {
+          folder: 'cca/cover',
+          resource_type: 'raw'
+        }
+      );
+
+      // Save to Neon DB
+      const result = await db.query(
+        `INSERT INTO applications
+        (name,email,education,experience,cv_url,cv_name,cover_url,cover_name,responses,job_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        RETURNING *`,
+        [
+          name,
+          email,
+          education,
+          experience,
+          cvUpload.secure_url,
+          cvFile.originalname,
+          coverUpload.secure_url,
+          coverFile.originalname,
+          JSON.stringify(responses || []),
+          jobId
+        ]
+      );
+
+      const saved = result.rows[0];
+
+      await sendApplicantAlert(saved);
+
+      res.json({ success: true });
+
+    } catch (err) {
+      console.error("APPLICATION ERROR:", err);
+      res.status(500).json({ error: "Upload failed" });
+    }
   }
-});
+);
 
 /* =========================
    GET APPLICATIONS
