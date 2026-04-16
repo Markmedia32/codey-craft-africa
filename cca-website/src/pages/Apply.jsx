@@ -15,6 +15,12 @@ const Apply = () => {
   const [loading, setLoading] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // ✅ NEW: submission loading state
+  const [submitting, setSubmitting] = useState(false);
+
+  // ✅ NEW: instant status message (UX improvement)
+  const [statusMessage, setStatusMessage] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,7 +71,6 @@ const Apply = () => {
     fetchJob();
   }, [jobId]);
 
-  // ✅ FIXED FILE HANDLING (NO BASE64)
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -83,9 +88,12 @@ const Apply = () => {
     setFormData(prev => ({ ...prev, responses: newResponses }));
   };
 
-  // ✅ FIXED SUBMIT (FORMDATA)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ NEW: instantly block double clicks
+    setSubmitting(true);
+    setStatusMessage("Submitting application...");
 
     const form = new FormData();
 
@@ -103,23 +111,35 @@ const Apply = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/applications`, {
         method: 'POST',
-        body: form // ❌ NO HEADERS HERE
+        body: form
       });
 
       if (response.ok) {
+
         const existingApps = JSON.parse(localStorage.getItem('cca_apps')) || [];
         localStorage.setItem('cca_apps', JSON.stringify([
           ...existingApps,
           { name: formData.name, jobTitle: job?.role, id: Date.now() }
         ]));
 
-        setIsSubmitted(true);
-        window.scrollTo(0, 0);
+        // ✅ NEW: instant success UX
+        setStatusMessage("Application submitted. Thank you for applying to Codey Craft Africa.");
+
+        setTimeout(() => {
+          setIsSubmitted(true);
+          window.scrollTo(0, 0);
+        }, 800);
+
       } else {
+        setStatusMessage("");
+        setSubmitting(false);
         alert("Server error: Could not save application.");
       }
+
     } catch (err) {
       console.error("Submission error:", err);
+      setStatusMessage("");
+      setSubmitting(false);
       alert("Network error. Please check your connection.");
     }
   };
@@ -141,15 +161,31 @@ const Apply = () => {
   return (
     <div className="apply-page" style={{ paddingTop: '120px', paddingBottom: '100px', background: '#fff' }}>
       <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px' }}>
+
         <button onClick={() => navigate('/careers')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', fontWeight: '900' }}>
           <FaArrowLeft /> BACK TO CAREERS
         </button>
 
         <span className="sub-head" style={{ color: 'var(--cca-red)' }}>OFFICIAL APPLICATION</span>
         <h1 className="title-large" style={{ marginBottom: '10px' }}>{job.role}</h1>
-        <p style={{ opacity: 0.6, marginBottom: '50px' }}>{job.type} • Complete the form and assessment below.</p>
+        <p style={{ opacity: 0.6, marginBottom: '20px' }}>{job.type} • Complete the form and assessment below.</p>
+
+        {/* ✅ NEW STATUS MESSAGE */}
+        {statusMessage && (
+          <div style={{
+            marginBottom: '20px',
+            padding: '15px',
+            background: '#f0fdf4',
+            border: '1px solid #22c55e',
+            color: '#166534',
+            fontWeight: 'bold'
+          }}>
+            {statusMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
             <input required placeholder="Full Name" style={inputStyle} onChange={e => setFormData({ ...formData, name: e.target.value })} />
             <input required placeholder="Email" type="email" style={inputStyle} onChange={e => setFormData({ ...formData, email: e.target.value })} />
@@ -177,6 +213,7 @@ const Apply = () => {
           </div>
 
           <h3 className="title-medium">Technical Assessment</h3>
+
           {Array.isArray(job.questions) && job.questions.map((q, i) => (
             <div key={i} style={{ marginBottom: '30px' }}>
               <label style={{ fontWeight: 'bold' }}>{q}</label>
@@ -184,9 +221,16 @@ const Apply = () => {
             </div>
           ))}
 
-          <button type="submit" className="cta-btn-primary" style={{ width: '100%', padding: '20px' }}>
-            SUBMIT APPLICATION
+          {/* ✅ UPDATED BUTTON (DISABLED + LOADING) */}
+          <button
+            type="submit"
+            className="cta-btn-primary"
+            style={{ width: '100%', padding: '20px', opacity: submitting ? 0.7 : 1 }}
+            disabled={submitting}
+          >
+            {submitting ? "SUBMITTING APPLICATION..." : "SUBMIT APPLICATION"}
           </button>
+
         </form>
       </div>
     </div>
