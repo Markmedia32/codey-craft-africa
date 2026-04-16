@@ -17,11 +17,6 @@ const RecruitAdmin = () => {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
 
-  /* =========================
-     🆕 ADDED: loading state sync
-  ========================= */
-  const [loadingDelete, setLoadingDelete] = useState(false);
-
   useEffect(() => {
     fetchJobs();
     fetchApplications();
@@ -88,48 +83,15 @@ const RecruitAdmin = () => {
     }
   };
 
-  /* =========================
-     🔥 UPDATED: DELETE JOB (NOW ALSO FILTERS APPLICATIONS)
-  ========================= */
   const deleteJob = async (id) => {
     if (!window.confirm("Delete this job role?")) return;
-
-    try {
-      setLoadingDelete(true);
-
-      await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
-
-      // remove job immediately from UI
-      setJobs(prev => prev.filter(job => job.id !== id));
-
-      /* 🆕 REMOVE APPLICATIONS RELATED TO DELETED JOB */
-      setApplications(prev =>
-        prev.filter(app => String(app.jobId) !== String(id))
-      );
-
-      // clear selected app if it belongs to deleted job
-      if (selectedApp && String(selectedApp.jobId) === String(id)) {
-        setSelectedApp(null);
-      }
-
-      setLoadingDelete(false);
-    } catch (err) {
-      setLoadingDelete(false);
-      console.error("Delete error:", err);
-    }
+    await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
+    fetchJobs();
   };
 
-  /* =========================
-     FIXED FILE VIEWER (FINAL)
-  ========================= */
   const openFile = (url) => {
     if (!url) return alert("No file found.");
-
-    /* 🆕 FIX: force direct browser viewer (no download trigger) */
-    const cleanUrl = url.split('?')[0];
-
-    const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(cleanUrl)}&embedded=true`;
-
+    const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
     window.open(viewerUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -183,13 +145,6 @@ const RecruitAdmin = () => {
                 </button>
               </div>
             ))}
-
-            {/* 🆕 LOADING INDICATOR */}
-            {loadingDelete && (
-              <p style={{ color: 'var(--cca-red)', marginTop: '10px' }}>
-                Updating records...
-              </p>
-            )}
           </motion.div>
         )}
 
@@ -197,7 +152,6 @@ const RecruitAdmin = () => {
         {activeTab === 'review' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '30px' }}>
             
-            {/* LIST */}
             <div style={{ background: '#fff', overflowY: 'auto', maxHeight: '75vh' }}>
               {applications.map(app => (
                 <div
@@ -216,7 +170,6 @@ const RecruitAdmin = () => {
               ))}
             </div>
 
-            {/* DETAILS */}
             <div style={{ background: 'white', padding: '30px' }}>
               {!selectedApp ? (
                 <p style={{ opacity: 0.4 }}>Select applicant</p>
@@ -233,7 +186,6 @@ const RecruitAdmin = () => {
                     <p><b>Education:</b> {selectedApp.education}</p>
                   </div>
 
-                  {/* FILE VIEWER */}
                   <div style={{ display: 'flex', gap: '15px' }}>
                     <button onClick={() => openFile(selectedApp.cv_url)} className="cta-btn-secondary">
                       <FaFilePdf /> View CV
@@ -244,7 +196,6 @@ const RecruitAdmin = () => {
                     </button>
                   </div>
 
-                  {/* INLINE PREVIEW */}
                   {selectedApp.cv_url && (
                     <div style={{ marginTop: '30px' }}>
                       <h4>CV Preview</h4>
@@ -258,61 +209,13 @@ const RecruitAdmin = () => {
                     </div>
                   )}
 
-                  {/* TECH RESPONSES (UNCHANGED) */}
-                  <div style={{ marginTop: '30px' }}>
-                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
-                      Technical Screening Responses
-                    </h3>
-
-                    {selectedApp.responses ? (
-                      (() => {
-                        let parsed = [];
-
-                        try {
-                          parsed =
-                            typeof selectedApp.responses === 'string'
-                              ? JSON.parse(selectedApp.responses)
-                              : selectedApp.responses;
-                        } catch (err) {
-                          parsed = [];
-                        }
-
-                        return parsed.length > 0 ? (
-                          parsed.map((item, index) => (
-                            <div
-                              key={index}
-                              style={{
-                                marginBottom: '15px',
-                                padding: '15px',
-                                background: '#fafafa',
-                                border: '1px solid #eee',
-                                borderLeft: '4px solid var(--cca-red)'
-                              }}
-                            >
-                              <p style={{ fontWeight: 'bold' }}>
-                                Q: {item.question}
-                              </p>
-                              <p style={{ whiteSpace: 'pre-wrap' }}>
-                                A: {item.answer || 'No answer provided'}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p style={{ opacity: 0.5 }}>No responses submitted.</p>
-                        );
-                      })()
-                    ) : (
-                      <p style={{ opacity: 0.5 }}>No responses found.</p>
-                    )}
-                  </div>
-
                 </>
               )}
             </div>
           </motion.div>
         )}
 
-        {/* ================= MODAL ================= */}
+        {/* ================= MODAL (RESTORED FULL FORM - ADDED, NOT REMOVED) ================= */}
         {showModal && (
           <div className="modal-overlay">
             <div style={{ background: '#fff', padding: '30px', maxWidth: '600px', margin: '100px auto' }}>
@@ -320,16 +223,55 @@ const RecruitAdmin = () => {
               <h2>Create Role</h2>
 
               <form onSubmit={handlePublish}>
+
+                {/* ORIGINAL FIELD */}
                 <input
                   placeholder="Role Title"
                   value={newJob.role}
                   onChange={e => setNewJob({ ...newJob, role: e.target.value })}
-                  style={{ width: '100%', padding: '10px' }}
+                  style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
                 />
 
-                <button className="cta-btn-primary" style={{ marginTop: '20px', width: '100%' }}>
+                {/* ADDED BACK FIELDS (THIS WAS MISSING BEFORE) */}
+                <input
+                  placeholder="Job Type (Full-time / Part-time / Contract)"
+                  value={newJob.type}
+                  onChange={e => setNewJob({ ...newJob, type: e.target.value })}
+                  style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                />
+
+                <textarea
+                  placeholder="Job Description"
+                  value={newJob.desc}
+                  onChange={e => setNewJob({ ...newJob, desc: e.target.value })}
+                  style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                />
+
+                <textarea
+                  placeholder="Requirements (one per line)"
+                  value={newJob.requirements}
+                  onChange={e => setNewJob({ ...newJob, requirements: e.target.value })}
+                  style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                />
+
+                <input
+                  placeholder="Skills (comma separated)"
+                  value={newJob.skills}
+                  onChange={e => setNewJob({ ...newJob, skills: e.target.value })}
+                  style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                />
+
+                <textarea
+                  placeholder="Interview Questions (one per line)"
+                  value={newJob.questions}
+                  onChange={e => setNewJob({ ...newJob, questions: e.target.value })}
+                  style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+                />
+
+                <button className="cta-btn-primary" style={{ marginTop: '10px', width: '100%' }}>
                   Publish
                 </button>
+
               </form>
             </div>
           </div>
