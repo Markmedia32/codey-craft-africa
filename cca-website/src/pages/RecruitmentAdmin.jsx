@@ -95,7 +95,6 @@ const RecruitAdmin = () => {
   const openFile = (url) => {
     if (!url) return alert("No file found.");
 
-    // ALWAYS open in browser viewer (no forced download)
     const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
 
     window.open(viewerUrl, '_blank', 'noopener,noreferrer');
@@ -218,6 +217,55 @@ const RecruitAdmin = () => {
                       />
                     </div>
                   )}
+
+                  {/* ================= ADDED: TECHNICAL RESPONSES ================= */}
+                  <div style={{ marginTop: '30px' }}>
+                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
+                      Technical Screening Responses
+                    </h3>
+
+                    {selectedApp.responses ? (
+                      (() => {
+                        let parsed = [];
+
+                        try {
+                          parsed =
+                            typeof selectedApp.responses === 'string'
+                              ? JSON.parse(selectedApp.responses)
+                              : selectedApp.responses;
+                        } catch (err) {
+                          parsed = [];
+                        }
+
+                        return parsed.length > 0 ? (
+                          parsed.map((item, index) => (
+                            <div
+                              key={index}
+                              style={{
+                                marginBottom: '15px',
+                                padding: '15px',
+                                background: '#fafafa',
+                                border: '1px solid #eee',
+                                borderLeft: '4px solid var(--cca-red)'
+                              }}
+                            >
+                              <p style={{ fontWeight: 'bold' }}>
+                                Q: {item.question}
+                              </p>
+                              <p style={{ whiteSpace: 'pre-wrap' }}>
+                                A: {item.answer || 'No answer provided'}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p style={{ opacity: 0.5 }}>No responses submitted.</p>
+                        );
+                      })()
+                    ) : (
+                      <p style={{ opacity: 0.5 }}>No responses found.</p>
+                    )}
+                  </div>
+
                 </>
               )}
             </div>
