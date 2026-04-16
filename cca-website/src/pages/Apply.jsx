@@ -20,9 +20,9 @@ const Apply = () => {
     email: '',
     education: '',
     experience: '',
-    cvData: '',
+    cvFile: null,
     cvName: '',
-    coverData: '',
+    coverFile: null,
     coverName: '',
     responses: []
   });
@@ -65,18 +65,16 @@ const Apply = () => {
     fetchJob();
   }, [jobId]);
 
+  // ✅ FIXED FILE HANDLING (NO BASE64)
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (type === 'cv') {
-        setFormData(prev => ({ ...prev, cvData: reader.result, cvName: file.name }));
-      } else {
-        setFormData(prev => ({ ...prev, coverData: reader.result, coverName: file.name }));
-      }
-    };
-    reader.readAsDataURL(file);
+
+    if (type === 'cv') {
+      setFormData(prev => ({ ...prev, cvFile: file, cvName: file.name }));
+    } else {
+      setFormData(prev => ({ ...prev, coverFile: file, coverName: file.name }));
+    }
   };
 
   const handleAssessmentChange = (index, val) => {
@@ -85,28 +83,36 @@ const Apply = () => {
     setFormData(prev => ({ ...prev, responses: newResponses }));
   };
 
+  // ✅ FIXED SUBMIT (FORMDATA)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prepare payload for the database
-    const applicationPayload = {
-      ...formData,
-      jobId: jobId,
-      jobTitle: job?.role || ''
-    };
+    const form = new FormData();
+
+    form.append('name', formData.name);
+    form.append('email', formData.email);
+    form.append('education', formData.education);
+    form.append('experience', formData.experience);
+    form.append('jobId', jobId);
+    form.append('jobTitle', job?.role || '');
+    form.append('responses', JSON.stringify(formData.responses));
+
+    form.append('cv', formData.cvFile);
+    form.append('cover', formData.coverFile);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/applications`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(applicationPayload)
+        body: form // ❌ NO HEADERS HERE
       });
 
       if (response.ok) {
-        // We still keep localStorage as a backup for the user's "My Applications" view if you have one
         const existingApps = JSON.parse(localStorage.getItem('cca_apps')) || [];
-        localStorage.setItem('cca_apps', JSON.stringify([...existingApps, { ...applicationPayload, id: Date.now(), submittedAt: new Date().toLocaleString() }]));
-        
+        localStorage.setItem('cca_apps', JSON.stringify([
+          ...existingApps,
+          { name: formData.name, jobTitle: job?.role, id: Date.now() }
+        ]));
+
         setIsSubmitted(true);
         window.scrollTo(0, 0);
       } else {
@@ -135,7 +141,10 @@ const Apply = () => {
   return (
     <div className="apply-page" style={{ paddingTop: '120px', paddingBottom: '100px', background: '#fff' }}>
       <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px' }}>
-        <button onClick={() => navigate('/careers')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', fontWeight: '900' }}><FaArrowLeft /> BACK TO CAREERS</button>
+        <button onClick={() => navigate('/careers')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', fontWeight: '900' }}>
+          <FaArrowLeft /> BACK TO CAREERS
+        </button>
+
         <span className="sub-head" style={{ color: 'var(--cca-red)' }}>OFFICIAL APPLICATION</span>
         <h1 className="title-large" style={{ marginBottom: '10px' }}>{job.role}</h1>
         <p style={{ opacity: 0.6, marginBottom: '50px' }}>{job.type} • Complete the form and assessment below.</p>
@@ -145,6 +154,7 @@ const Apply = () => {
             <input required placeholder="Full Name" style={inputStyle} onChange={e => setFormData({ ...formData, name: e.target.value })} />
             <input required placeholder="Email" type="email" style={inputStyle} onChange={e => setFormData({ ...formData, email: e.target.value })} />
           </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '40px' }}>
             <input required placeholder="Education" style={inputStyle} onChange={e => setFormData({ ...formData, education: e.target.value })} />
             <input required type="number" placeholder="Experience (Years)" style={inputStyle} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
@@ -157,6 +167,7 @@ const Apply = () => {
               <input required type="file" onChange={e => handleFileChange(e, 'cv')} />
               {formData.cvName && <p><FaFilePdf /> {formData.cvName}</p>}
             </div>
+
             <div style={fileBoxStyle}>
               <FaFileUpload size={30} color="#ccc" />
               <p>Upload Cover Letter *</p>
@@ -172,7 +183,10 @@ const Apply = () => {
               <textarea required style={{ ...inputStyle, height: '120px' }} onChange={e => handleAssessmentChange(i, e.target.value)} />
             </div>
           ))}
-          <button type="submit" className="cta-btn-primary" style={{ width: '100%', padding: '20px' }}>SUBMIT APPLICATION</button>
+
+          <button type="submit" className="cta-btn-primary" style={{ width: '100%', padding: '20px' }}>
+            SUBMIT APPLICATION
+          </button>
         </form>
       </div>
     </div>

@@ -15,11 +15,11 @@ const RecruitAdmin = () => {
   const [selectedApp, setSelectedApp] = useState(null);
 
   const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]); // Now starts as empty array
+  const [applications, setApplications] = useState([]);
 
   useEffect(() => {
     fetchJobs();
-    fetchApplications(); // Fetch applications on load
+    fetchApplications();
   }, []);
 
   const fetchJobs = async () => {
@@ -73,26 +73,10 @@ const RecruitAdmin = () => {
     } catch (err) { console.error("Delete failed"); }
   };
 
-  const openFile = (dataUrl, fileName) => {
-    if (!dataUrl) return alert("No file data found.");
-    try {
-      const parts = dataUrl.split(',');
-      const byteString = atob(parts[1]);
-      const mimeString = parts[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
-      const blob = new Blob([ab], { type: mimeString });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      if (mimeString.includes('word') || mimeString.includes('officedocument')) link.download = fileName || "Document";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-    } catch (err) { alert("Could not open file."); }
+  // ✅ UPDATED: Open Cloudinary URL directly
+  const openFile = (url) => {
+    if (!url) return alert("No file found.");
+    window.open(url, '_blank');
   };
 
   return (
@@ -148,29 +132,43 @@ const RecruitAdmin = () => {
                     </div>
                     <button onClick={() => { if(window.confirm("Delete application?")) setApplications(applications.filter(a => a.id !== selectedApp.id)); setSelectedApp(null); }} style={{ color: '#ccc', border: 'none', background: 'none', cursor: 'pointer' }}><FaTrash /> DELETE</button>
                   </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px', background: '#fafafa', padding: '25px' }}>
                     <div>
-                      <p style={{marginBottom:'8px'}}><strong>Email:</strong> {selectedApp.email}</p>
-                      <p style={{marginBottom:'8px'}}><strong>Experience:</strong> {selectedApp.experience} Years</p>
-                      <p style={{marginBottom:'8px'}}><strong>Education:</strong> {selectedApp.education}</p>
+                      <p><strong>Email:</strong> {selectedApp.email}</p>
+                      <p><strong>Experience:</strong> {selectedApp.experience} Years</p>
+                      <p><strong>Education:</strong> {selectedApp.education}</p>
                     </div>
+
+                    {/* ✅ UPDATED BUTTONS */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cvdata || selectedApp.cvData, selectedApp.cvname || selectedApp.cvName)} style={{justifyContent:'center'}}><FaFilePdf color="red"/> VIEW CV</button>
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.coverdata || selectedApp.coverData, selectedApp.covername || selectedApp.coverName)} style={{justifyContent:'center'}}><FaEye /> VIEW COVER</button>
+                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cv_url)} style={{justifyContent:'center'}}>
+                        <FaFilePdf color="red"/> VIEW CV
+                      </button>
+
+                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cover_url)} style={{justifyContent:'center'}}>
+                        <FaEye /> VIEW COVER
+                      </button>
                     </div>
                   </div>
 
-                  {/* ADDED: ASSESSMENT RESPONSES SECTION */}
+                  {/* RESPONSES */}
                   <div style={{ marginTop: '30px' }}>
-                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>Technical Assessment Responses</h3>
+                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>
+                      Technical Assessment Responses
+                    </h3>
+
                     {selectedApp.responses ? (
-                      JSON.parse(typeof selectedApp.responses === 'string' ? selectedApp.responses : JSON.stringify(selectedApp.responses)).map((res, index) => (
+                      JSON.parse(typeof selectedApp.responses === 'string'
+                        ? selectedApp.responses
+                        : JSON.stringify(selectedApp.responses)
+                      ).map((res, index) => (
                         <div key={index} style={{ marginBottom: '20px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #eee' }}>
-                          <p style={{ fontWeight: 'bold', color: '#333', marginBottom: '10px' }}>Q: {res.question}</p>
-                          <p style={{ whiteSpace: 'pre-wrap', color: '#555' }}>A: {res.answer}</p>
+                          <p style={{ fontWeight: 'bold' }}>Q: {res.question}</p>
+                          <p style={{ whiteSpace: 'pre-wrap' }}>A: {res.answer}</p>
                         </div>
                       ))
-                    ) : <p style={{opacity:0.5}}>No assessment responses provided.</p>}
+                    ) : <p style={{opacity:0.5}}>No responses.</p>}
                   </div>
 
                 </div>
@@ -180,22 +178,16 @@ const RecruitAdmin = () => {
         )}
 
         {showModal && (
-          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: 3000, overflowY: 'auto' }}>
-            <div className="modal-content" style={{ maxWidth: '800px', margin: '50px auto', background: '#fff', padding: '50px', position: 'relative' }}>
-              <FaTimes onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '30px', top: '30px', cursor: 'pointer', fontSize: '1.5rem' }} />
-              <h2 className="title-medium">Define Cloud Opportunity</h2>
-              <form onSubmit={handlePublish} style={{ marginTop: '30px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                  <input required placeholder="Role Title" style={inputStyle} value={newJob.role} onChange={e => setNewJob({...newJob, role: e.target.value})} />
-                  <select style={inputStyle} value={newJob.type} onChange={e => setNewJob({...newJob, type: e.target.value})}>
-                    <option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option>
-                  </select>
-                </div>
-                <textarea required placeholder="Job Description" style={{ ...inputStyle, height: '100px', marginBottom: '20px' }} value={newJob.desc} onChange={e => setNewJob({...newJob, desc: e.target.value})} />
-                <textarea required placeholder="Requirements (One per line)" style={{ ...inputStyle, height: '100px', marginBottom: '20px' }} value={newJob.requirements} onChange={e => setNewJob({...newJob, requirements: e.target.value})} />
-                <input required placeholder="Skills (Comma separated)" style={{ ...inputStyle, marginBottom: '20px' }} value={newJob.skills} onChange={e => setNewJob({...newJob, skills: e.target.value})} />
-                <textarea required placeholder="Assessment Questions (One per line)" style={{ ...inputStyle, height: '120px', marginBottom: '30px' }} value={newJob.questions} onChange={e => setNewJob({...newJob, questions: e.target.value})} />
-                <button type="submit" className="cta-btn-primary" style={{ width: '100%', padding: '20px' }}>PUBLISH TO CLOUD</button>
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: 3000 }}>
+            <div style={{ maxWidth: '800px', margin: '50px auto', background: '#fff', padding: '50px', position: 'relative' }}>
+              <FaTimes onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '30px', top: '30px', cursor: 'pointer' }} />
+              <h2>Define Cloud Opportunity</h2>
+
+              <form onSubmit={handlePublish}>
+                <input required placeholder="Role Title" style={inputStyle} value={newJob.role} onChange={e => setNewJob({...newJob, role: e.target.value})} />
+                <button type="submit" className="cta-btn-primary" style={{ width: '100%', marginTop: '20px' }}>
+                  PUBLISH
+                </button>
               </form>
             </div>
           </div>
@@ -205,5 +197,6 @@ const RecruitAdmin = () => {
   );
 };
 
-const inputStyle = { width: '100%', padding: '15px', border: '1px solid #eee', fontSize: '1rem', outlineColor: 'var(--cca-red)' };
+const inputStyle = { width: '100%', padding: '15px', border: '1px solid #eee' };
+
 export default RecruitAdmin;
