@@ -90,9 +90,30 @@ app.post('/api/jobs', async (req, res) => {
   res.json(result.rows[0]);
 });
 
+/* =========================
+   🔥 UPDATED DELETE JOB (CASCADE DELETE ADDED)
+========================= */
 app.delete('/api/jobs/:id', async (req, res) => {
-  await db.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
-  res.json({ success: true });
+
+  const jobId = req.params.id;
+
+  try {
+
+    // 1. DELETE JOB
+    await db.query('DELETE FROM jobs WHERE id=$1', [jobId]);
+
+    // 2. 🔥 DELETE ALL APPLICATIONS LINKED TO THIS JOB
+    await db.query('DELETE FROM applications WHERE job_id=$1', [jobId]);
+
+    res.json({
+      success: true,
+      message: "Job and related applications deleted successfully"
+    });
+
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    res.status(500).json({ error: "Failed to delete job" });
+  }
 });
 
 /* =========================
