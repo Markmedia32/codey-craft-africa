@@ -1,24 +1,32 @@
-// Version 2.1 - Fixed DB Column Names + Stability Improvements
+// Version 3.0 - Cloudinary File Storage (FINAL FIX)
 
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
-const { Pool } = require('pg'); 
+const { Pool } = require('pg');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
 const app = express();
 
 /* =========================
-   UNIVERSAL CORS CONFIGURATION
+   CORS + BODY LIMIT
 ========================= */
-app.use(cors()); 
-
-// Increased limits to handle large Base64 strings (PDFs)
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ limit: '25mb', extended: true }));
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 /* =========================
-   DATABASE CONNECTION (NEON)
+   CLOUDINARY CONFIG
+========================= */
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+/* =========================
+   DATABASE (NEON)
 ========================= */
 const db = new Pool({
   connectionString: process.env.POSTGRES_URL,
@@ -27,13 +35,13 @@ const db = new Pool({
 
 db.connect()
   .then(client => {
-    console.log('Connected to Codey Craft Cloud DB!');
+    console.log('Connected to DB!');
     client.release();
   })
-  .catch(err => console.error('Cloud DB Connection Error:', err.message));
+  .catch(err => console.error('DB Error:', err.message));
 
 /* =========================
-   EMAIL SETUP
+   EMAIL
 ========================= */
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -44,116 +52,65 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =========================
-   EMAIL ENDPOINT
+   JOBS (UNCHANGED)
 ========================= */
-app.post('/send-email', async (req, res) => {
-  const { name, email, message } = req.body;
-
-  try {
-    await transporter.sendMail({
-      from: email,
-      to: 'CodeyCraftAfrica@gmail.com',
-      subject: `Project Inquiry from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Email error:", err);
-    res.status(500).json({ success: false });
-  }
-});
-
-/* =========================
-   JOBS
-========================= */
-
 app.get('/api/jobs', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch jobs' });
-  }
+  const result = await db.query('SELECT * FROM jobs ORDER BY created_at DESC');
+  res.json(result.rows);
 });
 
 app.get('/api/jobs/:id', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM jobs WHERE id=$1', [req.params.id]);
-
-    if (!result.rows.length) {
-      return res.status(404).json({ error: 'Job not found' });
-    }
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch job' });
-  }
+  const result = await db.query('SELECT * FROM jobs WHERE id=$1', [req.params.id]);
+  res.json(result.rows[0]);
 });
 
 app.post('/api/jobs', async (req, res) => {
   const { role, type, description, requirements, skills, questions } = req.body;
 
-  try {
-    const result = await db.query(
-      `INSERT INTO jobs (role, type, description, requirements, skills, questions)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING *`,
-      [
-        role,
-        type,
-        description,
-        JSON.stringify(requirements),
-        JSON.stringify(skills),
-        JSON.stringify(questions)
-      ]
-    );
+  const result = await db.query(
+    `INSERT INTO jobs (role, type, description, requirements, skills, questions)
+     VALUES ($1,$2,$3,$4,$5,$6)
+     RETURNING *`,
+    [
+      role,
+      type,
+      description,
+      JSON.stringify(requirements),
+      JSON.stringify(skills),
+      JSON.stringify(questions)
+    ]
+  );
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save job' });
-  }
+  res.json(result.rows[0]);
 });
 
 app.delete('/api/jobs/:id', async (req, res) => {
-  try {
-    await db.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to delete job' });
-  }
+  await db.query('DELETE FROM jobs WHERE id=$1', [req.params.id]);
+  res.json({ success: true });
 });
 
 /* =========================
-   APPLICATION ALERT EMAIL
+   APPLICATION EMAIL ALERT
 ========================= */
 const sendApplicantAlert = async (applicant) => {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: 'CodeyCraftAfrica@gmail.com',
-      subject: `🚨 New Application: ${applicant.job_title}`,
-      text: `
-New Application Received:
-
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: 'CodeyCraftAfrica@gmail.com',
+    subject: `🚨 New Application`,
+    text: `
 Name: ${applicant.name}
 Email: ${applicant.email}
-Role: ${applicant.job_title}
-      `
-    });
-  } catch (err) {
-    console.error("Applicant email error:", err);
-  }
+Role: ${applicant.job_id}
+
+CV: ${applicant.cv_url}
+Cover Letter: ${applicant.cover_url}
+    `
+  });
 };
 
 /* =========================
-   APPLICATIONS (POSTGRES)
+   APPLICATIONS (FIXED)
 ========================= */
-
 app.post('/api/applications', async (req, res) => {
   const {
     name,
@@ -165,28 +122,39 @@ app.post('/api/applications', async (req, res) => {
     coverData,
     coverName,
     responses,
-    jobId,
-    jobTitle
+    jobId
   } = req.body;
 
   try {
+    // 🔥 Upload CV
+    const cvUpload = await cloudinary.uploader.upload(cvData, {
+      folder: 'cca/cv',
+      resource_type: 'raw'
+    });
+
+    // 🔥 Upload Cover Letter
+    const coverUpload = await cloudinary.uploader.upload(coverData, {
+      folder: 'cca/cover',
+      resource_type: 'raw'
+    });
+
+    // ✅ Save ONLY URLs (NOT base64)
     const result = await db.query(
-      `INSERT INTO applications 
-      (name,email,education,experience,cv_data,cv_name,cover_data,cover_name,responses,job_id,job_title)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      `INSERT INTO applications
+      (name,email,education,experience,cv_url,cv_name,cover_url,cover_name,responses,job_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       RETURNING *`,
       [
         name,
         email,
         education,
         experience,
-        cvData,
+        cvUpload.secure_url,
         cvName,
-        coverData,
+        coverUpload.secure_url,
         coverName,
         JSON.stringify(responses || []),
-        jobId,
-        jobTitle
+        jobId
       ]
     );
 
@@ -194,25 +162,24 @@ app.post('/api/applications', async (req, res) => {
 
     await sendApplicantAlert(saved);
 
-    res.json({ success: true, application: saved });
+    res.json({ success: true });
+
   } catch (err) {
-    console.error("APPLICATION SAVE ERROR:", err);
-    res.status(500).json({ error: 'Failed to save application' });
+    console.error("APPLICATION ERROR:", err);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
+/* =========================
+   GET APPLICATIONS
+========================= */
 app.get('/api/applications', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM applications ORDER BY submitted_at DESC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch applications' });
-  }
+  const result = await db.query('SELECT * FROM applications ORDER BY submitted_at DESC');
+  res.json(result.rows);
 });
 
 /* =========================
    SERVER
 ========================= */
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
