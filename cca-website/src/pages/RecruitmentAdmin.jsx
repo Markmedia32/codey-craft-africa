@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FaPlus, FaTrash, FaTimes, FaBriefcase, FaUsers, 
-  FaCheckCircle, FaLayerGroup, FaFilePdf, FaQuestionCircle, FaClock, FaEye 
+  FaFilePdf, FaEye 
 } from 'react-icons/fa';
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
@@ -38,17 +38,25 @@ const RecruitAdmin = () => {
     } catch (err) { console.error("Error loading applications:", err); }
   };
 
-  const [newJob, setNewJob] = useState({ role: '', type: 'Full-time', desc: '', requirements: '', skills: '', questions: '' });
+  const [newJob, setNewJob] = useState({
+    role: '',
+    type: 'Full-time',
+    desc: '',
+    requirements: '',
+    skills: '',
+    questions: ''
+  });
 
   const handlePublish = async (e) => {
     e.preventDefault();
+
     const jobObj = {
       role: newJob.role,
       type: newJob.type,
       description: newJob.desc,
-      requirements: newJob.requirements.split('\n').filter(r => r.trim() !== ''),
-      skills: newJob.skills.split(',').map(s => s.trim()).filter(s => s !== ''),
-      questions: newJob.questions.split('\n').filter(q => q.trim() !== '')
+      requirements: newJob.requirements.split('\n').filter(r => r.trim()),
+      skills: newJob.skills.split(',').map(s => s.trim()).filter(s => s),
+      questions: newJob.questions.split('\n').filter(q => q.trim())
     };
 
     try {
@@ -57,26 +65,53 @@ const RecruitAdmin = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobObj)
       });
+
       if (response.ok) {
         setShowModal(false);
-        setNewJob({ role: '', type: 'Full-time', desc: '', requirements: '', skills: '', questions: '' });
+        setNewJob({
+          role: '',
+          type: 'Full-time',
+          desc: '',
+          requirements: '',
+          skills: '',
+          questions: ''
+        });
         fetchJobs();
       }
-    } catch (err) { alert("Failed to publish to cloud."); }
+    } catch (err) {
+      alert("Failed to publish to cloud.");
+    }
   };
 
   const deleteJob = async (id) => {
-    if(!window.confirm("Delete this job role from the public site?")) return;
-    try {
-      await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
-      fetchJobs();
-    } catch (err) { console.error("Delete failed"); }
+    if (!window.confirm("Delete this job role?")) return;
+    await fetch(`${API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
+    fetchJobs();
   };
 
-  // ✅ UPDATED: Open Cloudinary URL directly
+  /* =========================
+     🆕 ENHANCED FILE VIEWER
+  ========================= */
   const openFile = (url) => {
     if (!url) return alert("No file found.");
-    window.open(url, '_blank');
+
+    const isPDF = url.toLowerCase().includes('.pdf');
+
+    if (isPDF) {
+      // 🟢 INLINE PREVIEW (BEST UX)
+      window.open(
+        `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`,
+        '_blank'
+      );
+    } else {
+      // fallback download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -88,115 +123,146 @@ const RecruitAdmin = () => {
             <span className="sub-head" style={{ color: 'var(--cca-red)' }}>ADMINISTRATION PORTAL</span>
             <h1 className="title-medium" style={{ margin: 0 }}>Recruitment Management</h1>
           </div>
+
           <div style={{ display: 'flex', gap: '15px' }}>
-            <button className={activeTab === 'manage' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('manage')} style={{ width: '180px' }}><FaBriefcase /> ROLES</button>
-            <button className={activeTab === 'review' ? 'cta-btn-primary' : 'cta-btn-secondary'} onClick={() => setActiveTab('review')} style={{ width: '220px' }}><FaUsers /> APPLICANTS ({applications.length})</button>
+            <button
+              className={activeTab === 'manage' ? 'cta-btn-primary' : 'cta-btn-secondary'}
+              onClick={() => setActiveTab('manage')}
+              style={{ width: '180px' }}
+            >
+              <FaBriefcase /> ROLES
+            </button>
+
+            <button
+              className={activeTab === 'review' ? 'cta-btn-primary' : 'cta-btn-secondary'}
+              onClick={() => setActiveTab('review')}
+              style={{ width: '220px' }}
+            >
+              <FaUsers /> APPLICANTS ({applications.length})
+            </button>
           </div>
         </header>
 
+        {/* ================= JOBS ================= */}
         {activeTab === 'manage' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div style={{ background: 'white', padding: '30px', border: '1px solid #eee', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <p style={{ opacity: 0.6 }}>Manage job openings hosted on Codey Craft Cloud Database.</p>
-                <button className="cta-btn-primary" onClick={() => setShowModal(true)}>+ CREATE NEW ROLE</button>
+            <div style={{ background: 'white', padding: '30px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ opacity: 0.6 }}>Manage job openings.</p>
+              <button className="cta-btn-primary" onClick={() => setShowModal(true)}>
+                + CREATE NEW ROLE
+              </button>
             </div>
-            <div className="admin-job-grid">
-              {jobs.map(job => (
-                <div key={job.id} style={{ background: 'white', border: '1px solid #eee', padding: '25px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div><h3 style={{ margin: 0 }}>{job.role}</h3><span style={{ fontSize: '0.8rem', color: 'var(--cca-red)', fontWeight: 'bold' }}>{job.type} • Cloud Sync Active</span></div>
-                  <button onClick={() => deleteJob(job.id)} style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer' }}><FaTrash /> REMOVE</button>
+
+            {jobs.map(job => (
+              <div key={job.id} style={{ background: 'white', padding: '20px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <h3>{job.role}</h3>
+                  <small style={{ color: 'var(--cca-red)' }}>{job.type}</small>
                 </div>
-              ))}
-            </div>
+                <button onClick={() => deleteJob(job.id)} style={{ color: 'red', border: 'none', background: 'none' }}>
+                  <FaTrash /> Delete
+                </button>
+              </div>
+            ))}
           </motion.div>
         )}
 
+        {/* ================= APPLICANTS ================= */}
         {activeTab === 'review' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '30px' }}>
-            <div style={{ maxHeight: '75vh', overflowY: 'auto', background: '#fff', border: '1px solid #eee' }}>
-              {applications.length === 0 ? <p style={{padding:'20px', opacity:0.5}}>No applications found.</p> : applications.map(app => (
-                <div key={app.id} onClick={() => setSelectedApp(app)} style={{ padding: '20px', borderBottom: '1px solid #eee', cursor: 'pointer', background: selectedApp?.id === app.id ? '#fef2f2' : 'transparent', borderLeft: selectedApp?.id === app.id ? '5px solid var(--cca-red)' : 'none' }}>
-                  <h4 style={{ margin: 0 }}>{app.name}</h4>
-                  <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>{app.job_title || app.jobTitle}</p>
+            
+            {/* LIST */}
+            <div style={{ background: '#fff', overflowY: 'auto', maxHeight: '75vh' }}>
+              {applications.map(app => (
+                <div
+                  key={app.id}
+                  onClick={() => setSelectedApp(app)}
+                  style={{
+                    padding: '15px',
+                    borderBottom: '1px solid #eee',
+                    cursor: 'pointer',
+                    background: selectedApp?.id === app.id ? '#fef2f2' : 'white'
+                  }}
+                >
+                  <h4>{app.name}</h4>
+                  <small>{app.job_title || app.jobTitle}</small>
                 </div>
               ))}
             </div>
 
-            <div style={{ background: 'white', padding: '40px', border: '1px solid #eee', minHeight: '60vh' }}>
-              {selectedApp ? (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-                    <div>
-                      <h2 style={{ fontSize: '2.2rem' }}>{selectedApp.name}</h2>
-                      <p style={{ color: 'var(--cca-red)', fontWeight: 'bold', fontSize: '1.1rem' }}>{selectedApp.job_title || selectedApp.jobTitle}</p>
-                    </div>
-                    <button onClick={() => { if(window.confirm("Delete application?")) setApplications(applications.filter(a => a.id !== selectedApp.id)); setSelectedApp(null); }} style={{ color: '#ccc', border: 'none', background: 'none', cursor: 'pointer' }}><FaTrash /> DELETE</button>
+            {/* DETAILS */}
+            <div style={{ background: 'white', padding: '30px' }}>
+              {!selectedApp ? (
+                <p style={{ opacity: 0.4 }}>Select applicant</p>
+              ) : (
+                <>
+                  <h2>{selectedApp.name}</h2>
+                  <p style={{ color: 'var(--cca-red)' }}>
+                    {selectedApp.job_title || selectedApp.jobTitle}
+                  </p>
+
+                  <div style={{ margin: '20px 0' }}>
+                    <p><b>Email:</b> {selectedApp.email}</p>
+                    <p><b>Experience:</b> {selectedApp.experience}</p>
+                    <p><b>Education:</b> {selectedApp.education}</p>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px', background: '#fafafa', padding: '25px' }}>
-                    <div>
-                      <p><strong>Email:</strong> {selectedApp.email}</p>
-                      <p><strong>Experience:</strong> {selectedApp.experience} Years</p>
-                      <p><strong>Education:</strong> {selectedApp.education}</p>
-                    </div>
+                  {/* 🆕 FILE VIEWER */}
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                    <button onClick={() => openFile(selectedApp.cv_url)} className="cta-btn-secondary">
+                      <FaFilePdf /> View CV
+                    </button>
 
-                    {/* ✅ UPDATED BUTTONS */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cv_url)} style={{justifyContent:'center'}}>
-                        <FaFilePdf color="red"/> VIEW CV
-                      </button>
-
-                      <button className="cta-btn-secondary" onClick={() => openFile(selectedApp.cover_url)} style={{justifyContent:'center'}}>
-                        <FaEye /> VIEW COVER
-                      </button>
-                    </div>
+                    <button onClick={() => openFile(selectedApp.cover_url)} className="cta-btn-secondary">
+                      <FaEye /> View Cover
+                    </button>
                   </div>
 
-                  {/* RESPONSES */}
-                  <div style={{ marginTop: '30px' }}>
-                    <h3 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px', marginBottom: '20px' }}>
-                      Technical Assessment Responses
-                    </h3>
-
-                    {selectedApp.responses ? (
-                      JSON.parse(typeof selectedApp.responses === 'string'
-                        ? selectedApp.responses
-                        : JSON.stringify(selectedApp.responses)
-                      ).map((res, index) => (
-                        <div key={index} style={{ marginBottom: '20px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #eee' }}>
-                          <p style={{ fontWeight: 'bold' }}>Q: {res.question}</p>
-                          <p style={{ whiteSpace: 'pre-wrap' }}>A: {res.answer}</p>
-                        </div>
-                      ))
-                    ) : <p style={{opacity:0.5}}>No responses.</p>}
-                  </div>
-
-                </div>
-              ) : <div style={{ textAlign: 'center', paddingTop: '150px', opacity: 0.3 }}>Select an applicant to review.</div>}
+                  {/* 🆕 INLINE PREVIEW (IF PDF) */}
+                  {selectedApp.cv_url && (
+                    <div style={{ marginTop: '30px' }}>
+                      <h4>CV Preview</h4>
+                      <iframe
+                        src={`https://docs.google.com/gview?url=${selectedApp.cv_url}&embedded=true`}
+                        width="100%"
+                        height="500px"
+                        style={{ border: '1px solid #ddd' }}
+                        title="CV Preview"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         )}
 
+        {/* ================= MODAL ================= */}
         {showModal && (
-          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', zIndex: 3000 }}>
-            <div style={{ maxWidth: '800px', margin: '50px auto', background: '#fff', padding: '50px', position: 'relative' }}>
-              <FaTimes onClick={() => setShowModal(false)} style={{ position: 'absolute', right: '30px', top: '30px', cursor: 'pointer' }} />
-              <h2>Define Cloud Opportunity</h2>
+          <div className="modal-overlay">
+            <div style={{ background: '#fff', padding: '30px', maxWidth: '600px', margin: '100px auto' }}>
+              <FaTimes onClick={() => setShowModal(false)} style={{ float: 'right', cursor: 'pointer' }} />
+              <h2>Create Role</h2>
 
               <form onSubmit={handlePublish}>
-                <input required placeholder="Role Title" style={inputStyle} value={newJob.role} onChange={e => setNewJob({...newJob, role: e.target.value})} />
-                <button type="submit" className="cta-btn-primary" style={{ width: '100%', marginTop: '20px' }}>
-                  PUBLISH
+                <input
+                  placeholder="Role Title"
+                  value={newJob.role}
+                  onChange={e => setNewJob({ ...newJob, role: e.target.value })}
+                  style={{ width: '100%', padding: '10px' }}
+                />
+
+                <button className="cta-btn-primary" style={{ marginTop: '20px', width: '100%' }}>
+                  Publish
                 </button>
               </form>
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
 };
-
-const inputStyle = { width: '100%', padding: '15px', border: '1px solid #eee' };
 
 export default RecruitAdmin;
