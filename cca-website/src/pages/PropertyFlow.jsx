@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaBuilding, FaUserShield, FaMoneyBillWave, FaFileInvoiceDollar, FaChartLine, FaMobileAlt } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 // Assets
 import pFlowHeroImg from '../assets/Logo - PropertyFlow.png'; // High-res dashboard mockup or architectural render
@@ -41,6 +42,15 @@ const PropertyFlow = () => {
   ];
 
   return (
+    <>
+    <Helmet>
+  <title>PropertyFlow | Property Management Software — Codey Craft Africa</title>
+  <meta name="description" content="PropertyFlow is a property management system by Codey Craft Africa, designed to help landlords and property managers in Kenya manage tenants, payments, and units efficiently." />
+  <meta property="og:title" content="PropertyFlow | Property Management Software — Codey Craft Africa" />
+  <meta property="og:description" content="PropertyFlow is a property management system by Codey Craft Africa, designed for landlords and property managers in Kenya." />
+  <meta property="og:url" content="https://www.codeycraft.africa/propertyflow" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="product-page">
       {/* --- Product Hero --- */}
       <section className="service-hero" style={{ backgroundImage: `url(${pFlowHeroImg})` }}>
@@ -142,6 +152,7 @@ const PropertyFlow = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

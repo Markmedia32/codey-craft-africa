@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaRegClock, FaChevronRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
@@ -13,6 +14,8 @@ const Blog = () => {
   }, []);
 
   return (
+    <>
+    <SEO page="blog" />
     <div className="blog-page" style={{ paddingTop: '120px', background: '#fff' }}>
       <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
         
@@ -63,6 +66,7 @@ const Blog = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

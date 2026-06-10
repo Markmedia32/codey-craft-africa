@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaCogs, FaRocket, FaLock, FaThLarge, FaPlug, FaGlobeAfrica } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 const Bizara = () => {
   const scrollToContact = () => {
@@ -13,6 +14,15 @@ const Bizara = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>Bizara | Business Management Software — Codey Craft Africa</title>
+  <meta name="description" content="Bizara is a business management solution by Codey Craft Africa, built to help African SMEs streamline operations and grow efficiently." />
+  <meta property="og:title" content="Bizara | Business Management Software — Codey Craft Africa" />
+  <meta property="og:description" content="Bizara is a business management solution by Codey Craft Africa, built to help African SMEs streamline operations and grow efficiently." />
+  <meta property="og:url" content="https://www.codeycraft.africa/bizara" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="bizara-product-page">
       {/* --- Coming Soon Hero --- */}
       <section className="service-hero" style={{ backgroundColor: '#050505', minHeight: '100vh' }}>
@@ -93,6 +103,7 @@ const Bizara = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

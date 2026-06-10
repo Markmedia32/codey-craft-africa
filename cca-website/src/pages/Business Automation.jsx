@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaSync, FaRobot, FaNetworkWired, FaDatabase, FaMicrochip, FaChartPie } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 // Assets
 import autoHeroImg from '../assets/Automation-hero.png'; // Recommended: A 3D render of gears or digital nodes
@@ -50,6 +51,15 @@ const BusinessAutomation = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>Business Automation Services | Codey Craft Africa — Nairobi, Kenya</title>
+  <meta name="description" content="Automate your business operations with Codey Craft Africa. We build custom automation solutions for SMEs and growing businesses across Africa." />
+  <meta property="og:title" content="Business Automation Services | Codey Craft Africa" />
+  <meta property="og:description" content="Automate your business operations with Codey Craft Africa. We build custom automation solutions for SMEs and growing businesses across Africa." />
+  <meta property="og:url" content="https://www.codeycraft.africa/business-automation" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="automation-service-page">
       {/* --- Service Hero --- */}
       <section className="service-hero" style={{ backgroundImage: `url(${autoHeroImg})` }}>
@@ -149,6 +159,7 @@ const BusinessAutomation = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

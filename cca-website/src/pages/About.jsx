@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import founderImg from '../assets/Founder.png'; 
+import SEO from '../components/SEO'
 
 const About = () => {
   const values = [
@@ -29,6 +30,8 @@ const About = () => {
   ];
 
   return (
+    <>
+    <SEO page="about" />
     <div className="about-page">
       {/* --- About Hero --- */}
       <section className="about-hero section-padding">
@@ -38,6 +41,8 @@ const About = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
+
+
           <span className="sub-head">WHO WE ARE</span>
           <h1 className="title-large">Engineering the <br/> Digital Frontier</h1>
           <p className="hero-p">
@@ -132,6 +137,7 @@ const About = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

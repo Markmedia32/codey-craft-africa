@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaChartBar, FaUserCheck, FaChartLine, FaBullseye, FaShareAlt, FaRocket } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 // Assets
 import growthHeroImg from '../assets/hero4-img.png'; 
@@ -51,6 +52,15 @@ const DigitalGrowth = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>Digital Growth Solutions | Codey Craft Africa — Kenya</title>
+  <meta name="description" content="Grow your business digitally with Codey Craft Africa. We help African businesses build their online presence, automate workflows, and scale with technology." />
+  <meta property="og:title" content="Digital Growth Solutions | Codey Craft Africa" />
+  <meta property="og:description" content="Grow your business digitally with Codey Craft Africa. We help African businesses build their online presence, automate workflows, and scale with technology." />
+  <meta property="og:url" content="https://www.codeycraft.africa/digital-growth" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="growth-service-page">
       {/* --- Service Hero --- */}
       <section className="service-hero" style={{ backgroundImage: `url(${growthHeroImg})` }}>
@@ -145,6 +155,7 @@ const DigitalGrowth = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaCloud, FaShieldAlt, FaChartLine, FaCogs, FaDatabase, FaLayerGroup } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 // Assets
 import saasHeroImg from '../assets/Hero-SEO.png'; // Recommended: A 3D abstract blue/dark render
@@ -50,6 +51,15 @@ const SaaS = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>SaaS Development | Codey Craft Africa — Nairobi, Kenya</title>
+  <meta name="description" content="Codey Craft Africa builds custom SaaS products for startups and SMEs across Africa. Scalable, cloud-based software tailored to your business model." />
+  <meta property="og:title" content="SaaS Development | Codey Craft Africa" />
+  <meta property="og:description" content="Codey Craft Africa builds custom SaaS products for startups and SMEs across Africa. Scalable, cloud-based software tailored to your business model." />
+  <meta property="og:url" content="https://www.codeycraft.africa/saas" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="saas-service-page">
       {/* --- SaaS Hero --- */}
       <section className="service-hero" style={{ backgroundImage: `url(${saasHeroImg})` }}>
@@ -142,6 +152,7 @@ const SaaS = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

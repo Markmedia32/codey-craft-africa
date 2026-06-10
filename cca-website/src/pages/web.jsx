@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaLaptopCode, FaMobileAlt, FaShoppingCart, FaTools, FaSearchDollar } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 // Assets
 import pFlowImg from '../assets/Rency.png'; 
@@ -48,6 +49,16 @@ const Web = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>Website Development in Kenya | Codey Craft Africa — Nairobi</title>
+  <meta name="description" content="Professional website development for businesses in Kenya. Codey Craft Africa builds fast, responsive, SEO-ready websites for startups and SMEs across Africa." />
+  <meta property="og:title" content="Website Development in Kenya | Codey Craft Africa" />
+  <meta property="og:description" content="Professional website development for businesses in Kenya. Codey Craft Africa builds fast, responsive, SEO-ready websites for startups and SMEs across Africa." />
+  <meta property="og:url" content="https://www.codeycraft.africa/web-development" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
+
     <div className="web-service-page">
       {/* --- Service Hero --- */}
       <section className="service-hero" style={{ backgroundImage: `url(${webHeroImg})` }}>
@@ -144,6 +155,7 @@ const Web = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

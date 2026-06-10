@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaFileUpload, FaArrowLeft, FaCheckCircle, FaFilePdf } from 'react-icons/fa';
+import SEO from '../components/SEO'
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000'
@@ -159,6 +160,8 @@ const Apply = () => {
   }
 
   return (
+    <>
+    <SEO page="careers" />
     <div className="apply-page" style={{ paddingTop: '120px', paddingBottom: '100px', background: '#fff' }}>
       <div className="container" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px' }}>
 
@@ -234,6 +237,7 @@ const Apply = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

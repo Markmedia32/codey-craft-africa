@@ -4,6 +4,7 @@ import {
   FaPlus, FaTrash, FaTimes, FaBriefcase, FaUsers, 
   FaFilePdf, FaEye 
 } from 'react-icons/fa';
+import { Helmet } from 'react-helmet-async'
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
@@ -96,6 +97,15 @@ const RecruitAdmin = () => {
   };
 
   return (
+    <>
+    <Helmet>
+  <title>Recruitment Admin System | Codey Craft Africa — Kenya</title>
+  <meta name="description" content="A recruitment administration system built by Codey Craft Africa to help businesses in Kenya manage job applications, candidates, and hiring workflows." />
+  <meta property="og:title" content="Recruitment Admin System | Codey Craft Africa" />
+  <meta property="og:description" content="A recruitment administration system built by Codey Craft Africa to help businesses in Kenya manage job applications, candidates, and hiring workflows." />
+  <meta property="og:url" content="https://www.codeycraft.africa/recruitment-admin" />
+  <meta property="og:image" content="https://www.codeycraft.africa/CCA_Official_Logo.png" />
+</Helmet>
     <div className="admin-dashboard-view" style={{ background: '#fcfcfc', minHeight: '100vh', paddingTop: '100px' }}>
       <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         
@@ -279,6 +289,7 @@ const RecruitAdmin = () => {
 
       </div>
     </div>
+    </>
   );
 };
 

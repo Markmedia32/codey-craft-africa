@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Typewriter } from 'react-simple-typewriter';
 import { Navbar } from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
+import SchemaOrg from '../components/SchemaOrg';
 
 // IMPORT ASSETS
 import pFlowImg from '../assets/PF1.png'; 
@@ -72,6 +74,9 @@ const Home = () => {
   };
 
   return (
+    <>
+    <SEO page="home" />
+<SchemaOrg />
     <div className="site-wrapper">
       <Navbar />
 
@@ -227,6 +232,7 @@ const Home = () => {
         </form>
       </section>
     </div>
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaUserClock, FaCheckCircle, FaLayerGroup } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO'
 
 // --- DYNAMIC API URL LOGIC ---
 // This automatically switches between your local machine and your live Render server
@@ -32,6 +33,8 @@ const Careers = () => {
   const hasJobs = openPositions.length > 0;
 
   return (
+    <>
+    <SEO page="careers" />
     <div className="careers-page">
       <div style={{ height: '100px' }}></div>
 
@@ -102,6 +105,7 @@ const Careers = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

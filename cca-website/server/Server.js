@@ -6,6 +6,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const contactRoute = require('./api/contact-api')
 require('dotenv').config();
 
 const app = express();
@@ -16,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use('/api', contactRoute)
 
 /* =========================
    MULTER CONFIG
