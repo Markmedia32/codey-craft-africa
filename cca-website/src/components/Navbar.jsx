@@ -1,50 +1,69 @@
-import React, { useState } from 'react';
-import logo from '../assets/Logo - White Canvas Version.png';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { FaArrowRight, FaBars, FaTimes } from "react-icons/fa";
+import logo from "../assets/Logo - White Canvas Version.png";
 
-export const Navbar = () => {
+const navigation = [
+  { label: "Capabilities", href: "/#capabilities" },
+  { label: "Selected work", href: "/#work" },
+  { label: "Sectors", href: "/#sectors" },
+  { label: "About", href: "/about" },
+];
+
+export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  const closeMenu = () => setOpen(false);
 
   return (
-    <nav className="nav-container">
-      <img 
-        src={logo} 
-        alt="Codey Craft Africa" 
-        className="nav-logo" 
-        onClick={() => window.location.href='/'}
-      />
+    <header className="premium-nav">
+      <Link to="/" className="brand-mark" aria-label="Codey Craft Africa home">
+        <img src={logo} alt="Codey Craft Africa" />
+      </Link>
 
-      <div className={`nav-links ${open ? 'active' : ''}`}>
-        <div className="nav-item"><a href="/about">About Us</a></div>
+      <nav className="desktop-nav" aria-label="Primary navigation">
+        {navigation.map((item) => (
+          <a key={item.label} href={item.href}>
+            {item.label}
+          </a>
+        ))}
+      </nav>
 
-        <div className="nav-item">
-          <a href="#services">Services ▾</a>
-          <div className="dropdown-menu">
-            <a href="/Web">Web Development</a>
-            <a href="/Saas">Saas Development</a>
-            <a href="/DigitalGrowth">Digital Growth Optimization</a>
-            <a href="/BusinessAutomation">Business Automation</a>
-          </div>
-        </div>
+      <Link to="/contact" className="nav-cta">
+        Start a project <FaArrowRight />
+      </Link>
 
-        <div className="nav-item">
-          <a href="#products">Products ▾</a>
-          <div className="dropdown-menu">
-            <a href="/PropertyFlow">Property Flow</a>
-            <a href="/Bizara">Bizara ERP</a>
-          </div>
-        </div>
-
-        <div className="nav-item"><a href="/careers">Careers</a></div>
-        <div className="nav-item"><a href="/Blog">Blog</a></div>
-        <div className="nav-item"><a href="/contact" style={{color: 'var(--cca-red)'}}>Contacts</a></div>
-      </div>
-
-      <div className="menu-icon" onClick={() => setOpen(!open)}>
+      <button
+        className="menu-toggle"
+        onClick={() => setOpen(!open)}
+        aria-label={open ? "Close menu" : "Open menu"}
+        aria-expanded={open}
+      >
         {open ? <FaTimes /> : <FaBars />}
-      </div>
-    </nav>
-  );
-};
+      </button>
 
-export default Navbar;
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            className="mobile-nav"
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.22 }}
+          >
+            {navigation.map((item) => (
+              <a key={item.label} href={item.href} onClick={closeMenu}>
+                {item.label}
+              </a>
+            ))}
+            <Link to="/contact" onClick={closeMenu} className="mobile-project-link">
+              Start a project <FaArrowRight />
+            </Link>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}

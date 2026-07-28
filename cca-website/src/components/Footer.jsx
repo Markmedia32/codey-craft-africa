@@ -1,43 +1,51 @@
-import React from 'react';
-import logo from '../assets/CCA Official Logo.png';
-import { FaInstagram, FaLinkedin, FaEnvelope } from 'react-icons/fa';
+import { Link } from "react-router-dom";
+import { FaArrowUpRight, FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import logo from "../assets/Logo - White Canvas Version.png";
 
-export const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="footer">
+    <footer className="premium-footer">
+      <div className="footer-top">
+        <p className="eyebrow">THE NEXT CATEGORY-LEADING PRODUCT STARTS HERE</p>
+        <h2>Built for the<br /><span>ambitious.</span></h2>
+        <Link to="/contact" className="footer-main-cta">
+          Tell us what you are building <FaArrowUpRight />
+        </Link>
+      </div>
+
       <div className="footer-grid">
         <div>
-          <img src={logo} alt="CCA" className="footer-logo-img" />
-          <p style={{opacity: 0.5, maxWidth: '350px'}}>Software development agency and SaaS lab engineering the future of African commerce.</p>
-          
-          <div className="social-icons">
-            <a href="https://instagram.com/codey_craft_africa" target="_blank" rel="noreferrer"><FaInstagram /></a>
-            <a href="https://linkedin.com/company/codey-craft-africa" target="_blank" rel="noreferrer"><FaLinkedin /></a>
-            <a href="mailto:CodeyCraftAfrica@gmail.com"><FaEnvelope /></a>
+          <img className="footer-logo" src={logo} alt="Codey Craft Africa" />
+          <p className="footer-description">
+            A Nairobi software studio building intelligent systems, digital products,
+            and high-conviction brand experiences for Africa’s next leaders.
+          </p>
+        </div>
+
+        <div>
+          <p className="footer-label">EXPLORE</p>
+          <Link to="/about">About CCA</Link>
+          <Link to="/portfolio">Our work</Link>
+          <Link to="/services">Capabilities</Link>
+          <Link to="/careers">Careers</Link>
+        </div>
+
+        <div>
+          <p className="footer-label">CONNECT</p>
+          <a href="mailto:CodeyCraftAfrica@gmail.com">CodeyCraftAfrica@gmail.com</a>
+          <a href="tel:+254795875370">+254 795 875 370</a>
+          <p>Nairobi, Kenya</p>
+          <div className="footer-socials">
+            <a href="https://linkedin.com/company/codey-craft-africa" target="_blank" rel="noreferrer" aria-label="LinkedIn"><FaLinkedinIn /></a>
+            <a href="https://instagram.com/codey_craft_africa" target="_blank" rel="noreferrer" aria-label="Instagram"><FaInstagram /></a>
           </div>
         </div>
-
-        <div>
-          <h4 className="footer-head">DIRECTORY</h4>
-          <a href="/about" className="footer-link">About Us</a>
-          <a href="/careers" className="footer-link">Careers</a>
-          <a href="/blog" className="footer-link">Blog</a>
-          <a href="#contact" className="footer-link">Contact</a>
-        </div>
-
-        <div>
-          <h4 className="footer-head">CONNECT</h4>
-          <p className="footer-link">Nairobi, Kenya</p>
-          <a href="mailto:CodeyCraftAfrica@gmail.com" className="footer-link">CodeyCraftAfrica@gmail.com</a>
-        </div>
       </div>
-      
+
       <div className="footer-bottom">
-        <p>© 2026 CODEY CRAFT AFRICA. SYSTEMS ENGINEERED BY CCA LABS.</p>
-        <p>LOCATED IN NAIROBI, KENYA</p>
+        <span>© {new Date().getFullYear()} CODEY CRAFT AFRICA</span>
+        <span>DESIGNED IN NAIROBI · BUILT FOR EVERYWHERE</span>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}
